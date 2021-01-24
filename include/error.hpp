@@ -31,6 +31,8 @@
 #ifndef PNGPP_ERROR_HPP_INCLUDED
 #define PNGPP_ERROR_HPP_INCLUDED
 
+
+#if !defined(_WIN32)
 /* check if we have strerror_s or strerror_r, prefer the former which is C11 std */
 #ifdef __STDC_LIB_EXT1__
 #define __STDC_WANT_LIB_EXT1__ 1
@@ -40,6 +42,7 @@
 #else
 #undef HAVE_STRERROR_S
 #endif
+#endif // if !defined(_WIN32)
 
 #include <array>
 #include <string>
@@ -84,24 +87,24 @@ public:
 protected:
 	static std::string thread_safe_strerror(int errnum)
 	{
+#if !defined(_WIN32)
 #define ERRBUF_SIZE 512
-			//char buf[ERRBUF_SIZE] = { 0 };
+		//char buf[ERRBUF_SIZE] = { 0 };
 		std::array<char, ERRBUF_SIZE> buf = {0};
 
 #ifdef HAVE_STRERROR_S
 		strerror_s(buf, ERRBUF_SIZE, errnum);
 		return std::string(buf);
-#else
-#if ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE) || (!__GLIBC__)
+#elif ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE) || (!__GLIBC__)
 		strerror_r(errnum, buf.data(), ERRBUF_SIZE);
 		return std::string(buf);
 #else
-			/* GNU variant can return a pointer to static buffer instead of buf */
+		/* GNU variant can return a pointer to static buffer instead of buf */
 		return std::string(strerror_r(errnum, buf, ERRBUF_SIZE));
-#endif
 #endif
 
 #undef ERRBUF_SIZE
+#endif // if !defined(_WIN32)
 	}
 };
 

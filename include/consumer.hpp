@@ -45,6 +45,18 @@
 namespace png
 {
 
+#ifdef PNG_READ_SWAP_SUPPORTED
+constexpr bool png_read_swap_supported{true};
+#else
+constexpr bool png_read_swap_supported{false};
+#endif
+
+#ifdef PNG_READ_INTERLACING_SUPPORTED
+constexpr bool png_read_interlacing_supported{true};
+#else
+constexpr bool png_read_interlacing_supported{false};
+#endif
+
 /**
  * \brief Pixel consumer class template.
  *
@@ -110,6 +122,7 @@ namespace png
  *
  * \see image, generator
  */
+
 template<typename pixel, typename pixcon, typename info_holder = def_image_info_holder, bool interlacing_supported = false>
 class consumer : public streaming_base<pixel, info_holder>
 {
@@ -139,7 +152,7 @@ public:
 
 		if constexpr (__BYTE_ORDER == __LITTLE_ENDIAN)
 		{
-			if constexpr (PNG_READ_SWAP_SUPPORTED)
+			if constexpr (png_read_swap_supported)
 			{
 				if (pixel_traits<pixel>::get_bit_depth() == 16)
 				{
@@ -156,7 +169,7 @@ public:
 		size_t pass_count;
 		if (rd.get_interlace_type() != interlace_none)
 		{
-			if constexpr (PNG_READ_INTERLACING_SUPPORTED)
+			if constexpr (png_read_interlacing_supported)
 			{
 				pass_count = rd.set_interlace_handling();
 			}

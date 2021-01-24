@@ -66,12 +66,12 @@ public:
 	explicit inline constexpr reader(istream& stream) noexcept
 		: io_base(png_create_read_struct(PNG_LIBPNG_VER_STRING, static_cast<io_base*>(this), raise_error, 0))
 	{
-		png_set_read_fn(m_png, &stream, read_data);
+		png_set_read_fn(m_png.get(), &stream, read_data);
 	}
 
 	inline constexpr ~reader() noexcept
 	{
-		png_destroy_read_struct(&m_png, m_info.get_png_info_ptr(), m_end_info.get_png_info_ptr());
+		//png_destroy_read_struct(&m_png, m_info.get_png_info_ptr(), m_end_info.get_png_info_ptr());
 	}
 
 	/**
@@ -79,11 +79,11 @@ public:
 	 */
 	inline constexpr void read_png()
 	{
-		if (setjmp(png_jmpbuf(m_png)))
+		if (setjmp(png_jmpbuf(m_png.get())))
 		{
 			throw error(m_error);
 		}
-		png_read_png(m_png, m_info.get_png_info(), /* transforms = */ 0, /* params = */ 0);
+		png_read_png(m_png.get(), m_info.get_png_info(), /* transforms = */ 0, /* params = */ 0);
 	}
 
 	/**
@@ -91,7 +91,7 @@ public:
 	 */
 	inline constexpr void read_info()
 	{
-		if (setjmp(png_jmpbuf(m_png)))
+		if (setjmp(png_jmpbuf(m_png.get())))
 		{
 			throw error(m_error);
 		}
@@ -103,11 +103,11 @@ public:
 	 */
 	inline constexpr void read_row(byte* bytes)
 	{
-		if (setjmp(png_jmpbuf(m_png)))
+		if (setjmp(png_jmpbuf(m_png.get())))
 		{
 			throw error(m_error);
 		}
-		png_read_row(m_png, bytes, 0);
+		png_read_row(m_png.get(), bytes, 0);
 	}
 
 	/**
@@ -115,7 +115,7 @@ public:
 	 */
 	inline constexpr void read_end_info()
 	{
-		if (setjmp(png_jmpbuf(m_png)))
+		if (setjmp(png_jmpbuf(m_png.get())))
 		{
 			throw error(m_error);
 		}
@@ -132,7 +132,7 @@ private:
 	{
 		//auto io{static_cast<io_base*>(png_get_error_ptr(png))};
 		//auto rd{static_cast<reader*>(io)};
-		auto rd{static_cast<reader*>(png_get_error_ptr(png)};
+		auto rd{static_cast<reader*>(png_get_error_ptr(png))};
 		rd->reset_error();
 		try
 		{

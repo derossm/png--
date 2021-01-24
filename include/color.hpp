@@ -109,7 +109,7 @@ struct color : public png_color
 		return *this;
 	}
 
-	inline ~color() noexcept = default;
+	inline constexpr ~color() noexcept = default;
 
 	inline constexpr auto operator<=>(const color& other) const noexcept = default;
 };

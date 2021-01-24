@@ -49,6 +49,18 @@
 namespace png
 {
 
+#ifdef PNGPP_HAS_STD_MOVE
+constexpr bool pngpp_has_std_move{true};
+#else
+constexpr bool pngpp_has_std_move{false};
+#endif
+
+#ifdef PNGPP_HAS_STATIC_ASSERT
+constexpr bool pngpp_has_static_assert{true};
+#else
+constexpr bool pngpp_has_static_assert{false};
+#endif
+
 /**
  * \brief Pixel buffer, that stores pixels as continuous memory chunk.
  * solid_pixel_buffer is useful when user whats to open png, do some changes and fetch to buffer to draw (as texture for example).
@@ -72,8 +84,8 @@ public:
 	/**
 	 * \brief A row of pixel data.
 	 */
-	using row_access = row_traits::row_access;
-	using row_const_access = row_traits::row_const_access;
+	using row_access = typename row_traits::row_access;
+	using row_const_access = typename row_traits::row_const_access;
 	using row_type = row_access;
 
 	/**
@@ -189,12 +201,12 @@ public:
 		return m_bytes;
 	}
 
-	if constexpr (PNGPP_HAS_STD_MOVE)
+	/**
+	 * \brief Moves the buffer to client code (c++11 only) .
+	 */
+	inline constexpr std::vector<byte> fetch_bytes() noexcept
 	{
-			/**
-			 * \brief Moves the buffer to client code (c++11 only) .
-			 */
-		inline constexpr std::vector<byte> fetch_bytes() noexcept
+		if constexpr (pngpp_has_std_move)
 		{
 			m_width = 0;
 			m_height = 0;
@@ -204,6 +216,10 @@ public:
 			// NOTE: inhibiting RVO with explicit move of a member variable instead of using an rvalue
 			// also leaving m_bytes in a state of undefined behavior if accessed FIXME
 			return std::move(m_bytes);
+		}
+		else
+		{
+			return std::vector<byte>{};
 		}
 	}
 
@@ -216,12 +232,12 @@ protected:
 	size_t m_stride{0};
 	std::vector<byte> m_bytes;
 
-	if constexpr (PNGPP_HAS_STATIC_ASSERT)
-	{
+	//if constexpr (pngpp_has_static_assert)
+	//{
 		static_assert(pixel_traits_t::bit_depth% CHAR_BIT == 0, "Bit_depth should consist of integer number of bytes");
 
 		static_assert(sizeof(pixel)* CHAR_BIT == pixel_traits_t::channels * pixel_traits_t::bit_depth, "pixel type should contain channels data only");
-	}
+	//}
 };
 
 /**

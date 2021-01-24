@@ -28,43 +28,55 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef PNGPP_END_INFO_HPP_INCLUDED
-#define PNGPP_END_INFO_HPP_INCLUDED
+#ifndef PNGPP_INFO_BASE_HPP_INCLUDED
+#define PNGPP_INFO_BASE_HPP_INCLUDED
 
-#include "info_base.hpp"
+#include <cassert>
+#include "error.hpp"
+#include "types.hpp"
+
+extern "C"
+{
+	#include <png.h>
+	#include <pnginfo.h>
+	#include <pngstruct.h>
+}
 
 namespace png
 {
 
+class io_base;
+
 /**
- * \brief Internal class to hold PNG ending %info.
- *
- * \see info, info_base
+ * \brief Internal class to hold PNG info or end_info.
  */
-class end_info : public info_base
+class info_base
 {
+	info_base(const info_base&) = delete;
+	info_base& operator=(const info_base&) = delete;
+
+	info_base(info_base&&) = delete;
+	info_base& operator=(info_base&&) = delete;
+
 public:
-	inline constexpr end_info(io_base& io, png_struct* png) noexcept : info_base(io, png) {}
+	inline info_base(io_base& io, png_struct* png) noexcept : m_io(io), m_png(png), m_info(png_create_info_struct(m_png.get())) {}
 
-	inline constexpr void destroy() noexcept
+	inline png_info* get_png_info() const noexcept
 	{
-		assert(m_info);
-		png_destroy_info_struct(m_png, &m_info);
+		return m_info.get();
 	}
 
-	inline constexpr void read() noexcept
+	/*inline constexpr png_info** get_png_info_ptr() noexcept
 	{
-		png_read_end(m_png, m_info);
-	}
+		return &m_info;
+	}*/
 
-	inline constexpr void write() const noexcept
-	{
-		png_write_end(m_png, m_info);
-	}
-
-	// TODO: add methods to read/write text comments etc.
+protected:
+	io_base& m_io;
+	::std::unique_ptr<png_struct> m_png;
+	::std::unique_ptr<png_info> m_info;
 };
 
 } // namespace png
 
-#endif // PNGPP_END_INFO_HPP_INCLUDED
+#endif // PNGPP_INFO_BASE_HPP_INCLUDED

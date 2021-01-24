@@ -28,48 +28,56 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef PNGPP_INFO_BASE_HPP_INCLUDED
-#define PNGPP_INFO_BASE_HPP_INCLUDED
+#ifndef PNGPP_PACKED_PIXEL_HPP_INCLUDED
+#define PNGPP_PACKED_PIXEL_HPP_INCLUDED
 
-#include <cassert>
-#include "error.hpp"
 #include "types.hpp"
+
+namespace png::detail
+{
+
+template<int bits>
+class allowed_bit_depth;
+
+template<> class allowed_bit_depth<1> {};
+template<> class allowed_bit_depth<2> {};
+template<> class allowed_bit_depth<4> {};
+
+} // namespace png::detail
 
 namespace png
 {
 
-class io_base;
-
 /**
- * \brief Internal class to hold PNG info or end_info.
+ * \brief The packed pixel class template.
+ *
+ * \see packed_gray_pixel, packed_index_pixel
  */
-class info_base
+template<int bits>
+class packed_pixel : detail::allowed_bit_depth<bits>
 {
-	info_base(const info_base&) = delete;
-	info_base& operator=(const info_base&) = delete;
-
-	info_base(info_base&&) = delete;
-	info_base& operator=(info_base&&) = delete;
-
 public:
-	inline constexpr info_base(io_base& io, png_struct* png) noexcept : m_io(io), m_png(png), m_info(png_create_info_struct(m_png)) {}
+	inline constexpr packed_pixel(byte value = 0) noexcept : m_value(value& get_bit_mask()) {}
 
-	inline constexpr png_info* get_png_info() const noexcept
+	inline constexpr operator byte() const noexcept
 	{
-		return m_info;
+		return m_value;
 	}
 
-	inline constexpr png_info** get_png_info_ptr() noexcept
+	static inline constexpr int get_bit_depth() noexcept
 	{
-		return &m_info;
+		return bits;
 	}
 
-protected:
-	io_base& m_io;
-	png_struct* m_png;
-	png_info* m_info;
+	static inline constexpr byte get_bit_mask() noexcept
+	{
+		return (1 << bits) - 1;
+	}
+
+private:
+	byte m_value;
 };
 
 } // namespace png
 
-#endif // PNGPP_INFO_BASE_HPP_INCLUDED
+#endif // PNGPP_PACKED_PIXEL_HPP_INCLUDED

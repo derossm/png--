@@ -1,0 +1,18 @@
+#cmakedefine PACKAGE_NAME "@PACKAGE_NAME@"
+#cmakedefine PACKAGE_TARNAME "@PACKAGE_TARNAME@"
+#cmakedefine PACKAGE_VERSION "@PACKAGE_VERSION@"
+#cmakedefine PACKAGE_STRING "@PACKAGE_STRING@"
+#cmakedefine PROGRAM_PREFIX "@PROGRAM_PREFIX@"
+
+#cmakedefine HAVE_LIBM
+#cmakedefine HAVE_ZLIB
+#cmakedefine HAVE_ZSTR
+#cmakedefine HAVE_LIBPNG
+#cmakedefine HAVE_PNGPP
+
+#cmakedefine HAVE_WIL
+
+#cmakedefine HAVE_RAPIDJSON
+#cmakedefine HAVE_MS_GSL
+#cmakedefine HAVE_ABSEIL
+#cmakedefine HAVE_FMT

@@ -53,7 +53,7 @@ public:
 	/**
 	 * \brief Constructs the image_info object with default values for color_type, interlace_type, compression_method and filter_type.
 	 */
-	inline constexpr image_info() noexcept {}
+	inline image_info() noexcept {}
 	inline constexpr ~image_info() noexcept = default;
 
 	inline constexpr image_info& operator=(const image_info& other) noexcept = default;
@@ -182,7 +182,7 @@ public:
 		return m_palette;
 	}
 
-	inline constexpr void set_palette(const palette& plte) noexcept
+	inline void set_palette(const palette& plte) noexcept
 	{
 		m_palette = plte;
 	}
@@ -190,7 +190,7 @@ public:
 	/**
 	 * \brief Removes all entries from the palette.
 	 */
-	inline constexpr void drop_palette() noexcept
+	inline void drop_palette() noexcept
 	{
 		m_palette.clear();
 	}
@@ -205,7 +205,7 @@ public:
 		return m_tRNS;
 	}
 
-	inline constexpr void set_tRNS(const tRNS& trns) noexcept
+	inline void set_tRNS(const tRNS& trns) noexcept
 	{
 		m_tRNS.clear();
 		::std::ranges::copy(trns, m_tRNS.begin());

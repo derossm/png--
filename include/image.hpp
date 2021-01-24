@@ -75,9 +75,9 @@ public:
 	/**
 	 * \brief Represents a row of image pixel data.
 	 */
-	using row_type = pixbuf::row_type;
-	using row_access = pixbuf::row_access;
-	using row_const_access = pixbuf::row_const_access;
+	using row_type = typename pixbuf::row_type;
+	using row_access = typename pixbuf::row_access;
+	using row_const_access = typename pixbuf::row_const_access;
 
 	/**
 	 * \brief A transformation functor to convert any image to
@@ -458,7 +458,7 @@ protected:
 		 */
 		inline constexpr byte* get_next_row(size_t pos) noexcept
 		{
-			using row_traits = pixbuf::row_traits;
+			using row_traits = typename pixbuf::row_traits;
 			return reinterpret_cast<byte*>(row_traits::get_data(m_pixbuf.get_row(pos)));
 		}
 

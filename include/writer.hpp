@@ -67,22 +67,22 @@ public:
 	explicit inline constexpr writer(ostream& stream) noexcept
 		: io_base(png_create_write_struct(PNG_LIBPNG_VER_STRING, static_cast<io_base*>(this), raise_error, 0))
 	{
-		png_set_write_fn(m_png, &stream, write_data, flush_data);
+		png_set_write_fn(m_png.get(), &stream, write_data, flush_data);
 	}
 
 	inline constexpr ~writer() noexcept
 	{
 		m_end_info.destroy();
-		png_destroy_write_struct(&m_png, m_info.get_png_info_ptr());
+		//png_destroy_write_struct(&m_png, m_info.get_png_info_ptr());
 	}
 
 	inline constexpr void write_png() const
 	{
-		if (setjmp(png_jmpbuf(m_png)))
+		if (setjmp(png_jmpbuf(m_png.get())))
 		{
 			throw error(m_error);
 		}
-		png_write_png(m_png, m_info.get_png_info(), /* transforms = */ 0, /* params = */ 0);
+		png_write_png(m_png.get(), m_info.get_png_info(), /* transforms = */ 0, /* params = */ 0);
 	}
 
 	/**
@@ -90,7 +90,7 @@ public:
 	 */
 	inline constexpr void write_info() const
 	{
-		if (setjmp(png_jmpbuf(m_png)))
+		if (setjmp(png_jmpbuf(m_png.get())))
 		{
 			throw error(m_error);
 		}
@@ -102,11 +102,11 @@ public:
 	 */
 	inline constexpr void write_row(byte* bytes) const
 	{
-		if (setjmp(png_jmpbuf(m_png)))
+		if (setjmp(png_jmpbuf(m_png.get())))
 		{
 			throw error(m_error);
 		}
-		png_write_row(m_png, bytes);
+		png_write_row(m_png.get(), bytes);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public:
 	 */
 	inline constexpr void write_end_info() const
 	{
-		if (setjmp(png_jmpbuf(m_png)))
+		if (setjmp(png_jmpbuf(m_png.get())))
 		{
 			throw error(m_error);
 		}
@@ -122,7 +122,7 @@ public:
 	}
 
 private:
-	static inline constexpr void write_data(png_struct* png, byte* data, png_size_t length) const noexcept
+	static inline constexpr void write_data(png_struct* png, byte* data, png_size_t length) noexcept
 	{
 		auto wr{static_cast<writer*>(png_get_error_ptr(png))};
 		wr->reset_error();
@@ -150,7 +150,7 @@ private:
 		}
 	}
 
-	static inline constexpr void flush_data(png_struct* png) const noexcept
+	static inline constexpr void flush_data(png_struct* png) noexcept
 	{
 		auto wr{static_cast<writer*>(png_get_error_ptr(png))};
 		wr->reset_error();

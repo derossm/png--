@@ -28,56 +28,43 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef PNGPP_PACKED_PIXEL_HPP_INCLUDED
-#define PNGPP_PACKED_PIXEL_HPP_INCLUDED
+#ifndef PNGPP_END_INFO_HPP_INCLUDED
+#define PNGPP_END_INFO_HPP_INCLUDED
 
-#include "types.hpp"
-
-namespace png::detail
-{
-
-template<int bits>
-class allowed_bit_depth;
-
-template<> class allowed_bit_depth<1> {};
-template<> class allowed_bit_depth<2> {};
-template<> class allowed_bit_depth<4> {};
-
-} // namespace png::detail
+#include "info_base.hpp"
 
 namespace png
 {
 
 /**
- * \brief The packed pixel class template.
+ * \brief Internal class to hold PNG ending %info.
  *
- * \see packed_gray_pixel, packed_index_pixel
+ * \see info, info_base
  */
-template<int bits>
-class packed_pixel : detail::allowed_bit_depth<bits>
+class end_info : public info_base
 {
 public:
-	inline constexpr packed_pixel(byte value = 0) noexcept : m_value(value& get_bit_mask()) {}
+	inline end_info(io_base& io, png_struct* png) noexcept : info_base(io, png) {}
 
-	inline constexpr operator byte() const noexcept
+	inline constexpr void destroy() noexcept
 	{
-		return m_value;
+		//assert(m_info);
+		//png_destroy_info_struct(m_png, &m_info);
 	}
 
-	static inline constexpr int get_bit_depth() const noexcept
+	inline void read() const noexcept
 	{
-		return bits;
+		png_read_end(m_png.get(), m_info.get());
 	}
 
-	static inline constexpr byte get_bit_mask() const noexcept
+	inline void write() const noexcept
 	{
-		return (1 << bits) - 1;
+		png_write_end(m_png.get(), m_info.get());
 	}
 
-private:
-	byte m_value;
+	// TODO: add methods to read/write text comments etc.
 };
 
 } // namespace png
 
-#endif // PNGPP_PACKED_PIXEL_HPP_INCLUDED
+#endif // PNGPP_END_INFO_HPP_INCLUDED

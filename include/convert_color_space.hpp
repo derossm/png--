@@ -53,7 +53,7 @@ template<typename pixel>
 struct convert_color_space_impl
 {
 	using traits = pixel_traits<pixel>;
-	using component_type = traits::component_type;
+	using component_type = typename traits::component_type;
 	using alpha_traits = basic_alpha_pixel_traits<component_type>;
 
 	template<typename reader>
@@ -245,9 +245,7 @@ protected:
  *
  * \see image, image::read
  */
-template<typename pixel>
-struct convert_color_space : detail::convert_color_space_impl<pixel>
-{};
+template<typename pixel> struct convert_color_space : detail::convert_color_space_impl<pixel> {};
 
 /**
  * \brief Converts %image %color space. A specialization for rgb_pixel type.
