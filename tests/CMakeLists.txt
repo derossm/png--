@@ -12,6 +12,7 @@ set(DERMA_FILES
 add_executable(catch2tests "${DERMA_FILES}")
 set_target_properties(catch2tests PROPERTIES CXX_STANDARD 20 LANGUAGE CXX LINKER_LANGUAGE CXX)
 target_include_directories(catch2tests PUBLIC "${COMMON_INCLUDE_DIRS}" "../" "../include" "R:/repos/lpng1637")
+target_link_libraries(catch2tests PRIVATE fmt::fmt)
 target_precompile_headers(catch2tests PUBLIC ../include/stdafx.h)
 
 if(MSVC)

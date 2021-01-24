@@ -31,6 +31,8 @@
 #ifndef PNGPP_CONSUMER_HPP_INCLUDED
 #define PNGPP_CONSUMER_HPP_INCLUDED
 
+#pragma once
+
 #include <cassert>
 #include <stdexcept>
 #include <iostream>

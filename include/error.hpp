@@ -31,6 +31,8 @@
 #ifndef PNGPP_ERROR_HPP_INCLUDED
 #define PNGPP_ERROR_HPP_INCLUDED
 
+#pragma once
+
 
 #if !defined(_WIN32)
 /* check if we have strerror_s or strerror_r, prefer the former which is C11 std */

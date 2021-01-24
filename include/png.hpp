@@ -31,6 +31,10 @@
 #ifndef PNGPP_PNG_HPP_INCLUDED
 #define PNGPP_PNG_HPP_INCLUDED
 
+#pragma once
+
+constexpr bool enable_logging{true};
+
 #include <png.h>
 
 #include "config.hpp"

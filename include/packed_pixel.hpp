@@ -31,6 +31,8 @@
 #ifndef PNGPP_PACKED_PIXEL_HPP_INCLUDED
 #define PNGPP_PACKED_PIXEL_HPP_INCLUDED
 
+#pragma once
+
 #include "types.hpp"
 
 namespace png::detail

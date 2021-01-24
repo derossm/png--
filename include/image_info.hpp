@@ -31,6 +31,8 @@
 #ifndef PNGPP_IMAGE_INFO_HPP_INCLUDED
 #define PNGPP_IMAGE_INFO_HPP_INCLUDED
 
+#pragma once
+
 #include <ranges>
 #include <algorithm>
 

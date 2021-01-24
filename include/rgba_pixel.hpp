@@ -31,6 +31,8 @@
 #ifndef PNGPP_RGBA_PIXEL_HPP_INCLUDED
 #define PNGPP_RGBA_PIXEL_HPP_INCLUDED
 
+#pragma once
+
 #include "types.hpp"
 #include "pixel_traits.hpp"
 

@@ -31,6 +31,8 @@
 #ifndef PNGPP_CONFIG_HPP_INCLUDED
 #define PNGPP_CONFIG_HPP_INCLUDED
 
+#pragma once
+
 #include <stdlib.h>
 
 // Endianness test

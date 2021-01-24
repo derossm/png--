@@ -31,6 +31,8 @@
 #ifndef PNGPP_READER_HPP_INCLUDED
 #define PNGPP_READER_HPP_INCLUDED
 
+#pragma once
+
 #include <cassert>
 #include "io_base.hpp"
 

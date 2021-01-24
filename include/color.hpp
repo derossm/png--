@@ -31,6 +31,10 @@
 #ifndef PNGPP_COLOR_HPP_INCLUDED
 #define PNGPP_COLOR_HPP_INCLUDED
 
+#pragma once
+
+#include <spdlog/spdlog.h>
+
 #include "types.hpp"
 
 namespace png
@@ -46,6 +50,11 @@ struct color : public png_color
 		this->red = r;
 		this->green = g;
 		this->blue = b;
+
+		if constexpr(enable_logging)
+		{
+			spdlog::info("constructor");
+		}
 	}
 
 	/**
@@ -56,6 +65,11 @@ struct color : public png_color
 		this->red = other.red;
 		this->green = other.green;
 		this->blue = other.blue;
+
+		if constexpr(enable_logging)
+		{
+			spdlog::info("png_color:ctor");
+		}
 	}
 
 	// Rule of Five
@@ -64,6 +78,11 @@ struct color : public png_color
 		this->red = other.red;
 		this->green = other.green;
 		this->blue = other.blue;
+
+		if constexpr(enable_logging)
+		{
+			spdlog::info("png_color:mtor");
+		}
 	}
 
 	inline constexpr color& operator=(const png_color& other) noexcept
@@ -71,13 +90,26 @@ struct color : public png_color
 		this->red = other.red;
 		this->green = other.green;
 		this->blue = other.blue;
+
+		if constexpr(enable_logging)
+		{
+			spdlog::info("png_color:cass");
+		}
+
 		return *this;
 	}
+
 	inline constexpr color& operator=(png_color&& other) noexcept
 	{
 		this->red = other.red;
 		this->green = other.green;
 		this->blue = other.blue;
+
+		if constexpr(enable_logging)
+		{
+			spdlog::info("png_color:mass");
+		}
+
 		return *this;
 	}
 
@@ -86,12 +118,23 @@ struct color : public png_color
 		this->red = other.red;
 		this->green = other.green;
 		this->blue = other.blue;
+
+		if constexpr(enable_logging)
+		{
+			spdlog::info("color:ctor");
+		}
 	}
+
 	inline constexpr color(color&& other) noexcept
 	{
 		this->red = other.red;
 		this->green = other.green;
 		this->blue = other.blue;
+
+		if constexpr(enable_logging)
+		{
+			spdlog::info("color:mtor");
+		}
 	}
 
 	inline constexpr color& operator=(const color& other) noexcept
@@ -99,13 +142,26 @@ struct color : public png_color
 		this->red = other.red;
 		this->green = other.green;
 		this->blue = other.blue;
+
+		if constexpr(enable_logging)
+		{
+			spdlog::info("color:cass");
+		}
+
 		return *this;
 	}
+
 	inline constexpr color& operator=(color&& other) noexcept
 	{
 		this->red = other.red;
 		this->green = other.green;
 		this->blue = other.blue;
+
+		if constexpr(enable_logging)
+		{
+			spdlog::info("color:mass");
+		}
+
 		return *this;
 	}
 

@@ -31,6 +31,8 @@
 #ifndef PNGPP_GA_PIXEL_HPP_INCLUDED
 #define PNGPP_GA_PIXEL_HPP_INCLUDED
 
+#pragma once
+
 #include <limits>
 
 #include "types.hpp"

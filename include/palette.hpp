@@ -31,6 +31,8 @@
 #ifndef PNGPP_PALETTE_HPP_INCLUDED
 #define PNGPP_PALETTE_HPP_INCLUDED
 
+#pragma once
+
 #include <vector>
 #include "color.hpp"
 

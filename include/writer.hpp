@@ -31,6 +31,8 @@
 #ifndef PNGPP_WRITER_HPP_INCLUDED
 #define PNGPP_WRITER_HPP_INCLUDED
 
+#pragma once
+
 #include <cassert>
 #include "io_base.hpp"
 

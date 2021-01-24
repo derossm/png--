@@ -31,6 +31,8 @@
 #ifndef PNGPP_PIXEL_TRAITS_HPP_INCLUDED
 #define PNGPP_PIXEL_TRAITS_HPP_INCLUDED
 
+#pragma once
+
 #include <limits>
 #include "types.hpp"
 

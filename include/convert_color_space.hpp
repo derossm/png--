@@ -31,6 +31,13 @@
 #ifndef PNGPP_CONVERT_COLOR_SPACE_HPP_INCLUDED
 #define PNGPP_CONVERT_COLOR_SPACE_HPP_INCLUDED
 
+#pragma once
+
+#include <algorithm>
+#include <span>
+
+#include <spdlog/spdlog.h>
+
 #include "error.hpp"
 #include "rgb_pixel.hpp"
 #include "rgba_pixel.hpp"
@@ -69,19 +76,43 @@ struct convert_color_space_impl
 		io.set_bit_depth(traits::get_bit_depth());
 	}
 
-protected:
+//protected:
 	static inline constexpr void expand_8_to_16(png_struct*, png_row_info* row_info, byte* row) noexcept
 	{
 #ifdef DEBUG_EXPAND_8_16
-		printf("row: width=%d, bytes=%d, channels=%d\n",
-			row_info->width, row_info->rowbytes, row_info->channels);
+		printf("row: width=%d, bytes=%d, channels=%d\n", row_info->width, row_info->rowbytes, row_info->channels);
 		printf("<= ");
 		dump_row(row, row_info->rowbytes);
 #endif
-		for (uint_32 i = row_info->rowbytes; i-- > 0; )
+		//for (uint_32 i = row_info->rowbytes; i-- > 0; )
+		//{
+		//	row[2 * i + 1] = row[i];
+		//	row[2 * i + 0] = 0;
+		//}
+		auto expanded = ::std::span(reinterpret_cast<short*>(row), row_info->rowbytes/2);
+		auto compact = ::std::span(row, row_info->rowbytes/2);
+		::std::transform(expanded.rbegin(), expanded.rend(), compact.rbegin(), expanded.rbegin(),
+			[](auto& lhs, auto& rhs)
+			{
+				static_assert(sizeof(lhs) == 2*sizeof(byte));
+				if constexpr (__BYTE_ORDER == __LITTLE_ENDIAN)
+				{
+					lhs = rhs;
+				}
+				else
+				{
+					// I think this will work for BIG ENDIAN
+					lhs = rhs;
+					lhs >>= sizeof(byte);
+				}
+				return lhs;
+			});
+		if constexpr(enable_logging)
 		{
-			row[2 * i + 1] = row[i];
-			row[2 * i + 0] = 0;
+			for(auto i{0}; i < row_info->rowbytes; ++i)
+			{
+				spdlog::info("{}: rows after = {:x}\n", i, row[i]);
+			}
 		}
 #ifdef DEBUG_EXPAND_8_16
 		printf("=> ");
@@ -116,8 +147,7 @@ protected:
 		{
 #ifdef PNG_READ_USER_TRANSFORM_SUPPORTED
 			io.set_read_user_transform(expand_8_to_16);
-			io.set_user_transform_info(NULL, 16,
-				traits::get_channels());
+			io.set_user_transform_info(NULL, 16, traits::get_channels());
 #else
 			throw error("expected 16-bit data but found 8-bit; recompile with PNG_READ_USER_TRANSFORM_SUPPORTED");
 #endif

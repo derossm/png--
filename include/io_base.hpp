@@ -31,9 +31,11 @@
 #ifndef PNGPP_IO_BASE_HPP_INCLUDED
 #define PNGPP_IO_BASE_HPP_INCLUDED
 
-#include <cassert>
-#include <cstdio>
-#include <cstdarg>
+#pragma once
+
+//#include <cassert>
+//#include <cstdio>
+//#include <cstdarg>
 #include "error.hpp"
 #include "info.hpp"
 #include "end_info.hpp"
@@ -190,7 +192,7 @@ public:
 
 	inline bool has_chunk(chunk id) noexcept
 	{
-		return png_get_valid(m_png.get(), m_info.get_png_info(), uint_32(id)) == uint_32(id);
+		return png_get_valid(m_png.get(), m_info.get_png_info(), static_cast<uint_32>(id)) == static_cast<uint_32>(id);
 	}
 
 #if defined(PNG_READ_EXPAND_SUPPORTED)
@@ -233,26 +235,21 @@ public:
 	inline void set_rgb_to_gray(rgb_to_gray_error_action error_action = rgb_to_gray_silent,
 		double red_weight = -1.0, double green_weight = -1.0) const noexcept
 	{
-		TRACE_IO_TRANSFORM("png_set_rgb_to_gray: error_action=%d, red_weight=%lf, green_weight=%lf\n",
-			error_action, red_weight, green_weight);
-
+		TRACE_IO_TRANSFORM("png_set_rgb_to_gray: error_action=%d, red_weight=%lf, green_weight=%lf\n", error_action, red_weight, green_weight);
 		png_set_rgb_to_gray(m_png.get(), error_action, red_weight, green_weight);
 	}
 #else
 	inline void set_rgb_to_gray(rgb_to_gray_error_action error_action = rgb_to_gray_silent,
 		fixed_point red_weight = -1, fixed_point green_weight = -1) const noexcept
 	{
-		TRACE_IO_TRANSFORM("png_set_rgb_to_gray_fixed: error_action=%d, red_weight=%d, green_weight=%d\n",
-			error_action, red_weight, green_weight);
-
-		png_set_rgb_to_gray_fixed(m_png.get(), error_action,
-			red_weight, green_weight);
+		TRACE_IO_TRANSFORM("png_set_rgb_to_gray_fixed: error_action=%d, red_weight=%d, green_weight=%d\n", error_action, red_weight, green_weight);
+		png_set_rgb_to_gray_fixed(m_png.get(), error_action, red_weight, green_weight);
 	}
 #endif // PNG_FLOATING_POINT_SUPPORTED
 
-		//////////////////////////////////////////////////////////////////////
-		// alpha channel transformations
-		//
+	//////////////////////////////////////////////////////////////////////
+	// alpha channel transformations
+	//
 #if defined(PNG_READ_STRIP_ALPHA_SUPPORTED)
 	inline void set_strip_alpha() const noexcept
 	{
@@ -281,7 +278,6 @@ public:
 	inline void set_filler(uint_32 filler, filler_type type) const noexcept
 	{
 		TRACE_IO_TRANSFORM("png_set_filler: filler=%08x, type=%d\n", filler, type);
-
 		png_set_filler(m_png.get(), filler, type);
 	}
 
@@ -289,7 +285,6 @@ public:
 	inline void set_add_alpha(uint_32 filler, filler_type type) const noexcept
 	{
 		TRACE_IO_TRANSFORM("png_set_add_alpha: filler=%08x, type=%d\n", filler, type);
-
 		png_set_add_alpha(m_png.get(), filler, type);
 	}
 #endif
@@ -322,18 +317,13 @@ public:
 #if defined(PNG_READ_SHIFT_SUPPORTED) || defined(PNG_WRITE_SHIFT_SUPPORTED)
 	inline void set_shift(byte red_bits, byte green_bits, byte blue_bits, byte alpha_bits = 0) const
 	{
-		TRACE_IO_TRANSFORM("png_set_shift: red_bits=%d, green_bits=%d, blue_bits=%d, alpha_bits=%d\n",
-			red_bits, green_bits, blue_bits, alpha_bits);
+		TRACE_IO_TRANSFORM("png_set_shift: red_bits=%d, green_bits=%d, blue_bits=%d, alpha_bits=%d\n", red_bits, green_bits, blue_bits, alpha_bits);
 
 		if (get_color_type() != color_type_rgb || get_color_type() != color_type_rgb_alpha)
 		{
 			throw error("set_shift: expected RGB or RGBA color type");
 		}
-		color_info bits;
-		bits.red = red_bits;
-		bits.green = green_bits;
-		bits.blue = blue_bits;
-		bits.alpha = alpha_bits;
+		color_info bits{ .red = red_bits, .green = green_bits, .blue = blue_bits, .alpha = alpha_bits };
 		png_set_shift(m_png.get(), &bits);
 	}
 
@@ -341,13 +331,12 @@ public:
 	{
 		TRACE_IO_TRANSFORM("png_set_shift: gray_bits=%d, alpha_bits=%d\n", gray_bits, alpha_bits);
 
+		//if (auto type = get_color_type(); type != color_type_gray || type != color_type_gray_alpha)
 		if (get_color_type() != color_type_gray || get_color_type() != color_type_gray_alpha)
 		{
 			throw error("set_shift: expected Gray or Gray+Alpha color type");
 		}
-		color_info bits;
-		bits.gray = gray_bits;
-		bits.alpha = alpha_bits;
+		color_info bits{ .gray = gray_bits, .alpha = alpha_bits };
 		png_set_shift(m_png.get(), &bits);
 	}
 #endif // PNG_READ_SHIFT_SUPPORTED || PNG_WRITE_SHIFT_SUPPORTED
@@ -388,7 +377,6 @@ public:
 	inline void set_user_transform_info(void* info, int bit_depth, int channels) noexcept
 	{
 		TRACE_IO_TRANSFORM("png_set_user_transform_info: bit_depth=%d, channels=%d\n", bit_depth, channels);
-
 		png_set_user_transform_info(m_png.get(), info, bit_depth, channels);
 	}
 #endif
@@ -399,10 +387,10 @@ protected:
 		return png_get_io_ptr(m_png.get());
 	}
 
-	inline void set_error(const char* message) noexcept
+	inline void set_error(::std::string_view message) noexcept
 	{
-		assert(message);
-		m_error = message;
+		//assert(message);
+		m_error = ::std::string{message};
 	}
 
 	inline void reset_error() noexcept
@@ -427,9 +415,9 @@ protected:
 		longjmp(png_jmpbuf(m_png.get()), -1);
 	}
 
-	static inline void raise_error(png_struct* png, const char* message) noexcept
+	static inline void raise_error(png_struct* png, ::std::string_view message) noexcept
 	{
-		io_base* io{static_cast<io_base*>(png_get_error_ptr(png))};
+		auto io{static_cast<io_base*>(png_get_error_ptr(png))};
 		io->set_error(message);
 		io->raise_error();
 	}
@@ -437,7 +425,7 @@ protected:
 	::std::unique_ptr<png_struct> m_png;
 	info m_info;
 	end_info m_end_info;
-	std::string m_error;
+	::std::string m_error;
 };
 
 } // namespace png

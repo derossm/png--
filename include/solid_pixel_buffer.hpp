@@ -31,6 +31,8 @@
 #ifndef PNGPP_SOLID_PIXEL_BUFFER_HPP_INCLUDED
 #define PNGPP_SOLID_PIXEL_BUFFER_HPP_INCLUDED
 
+#pragma once
+
 #include <ranges>
 #include <algorithm>
 #include <span>

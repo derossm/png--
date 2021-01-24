@@ -31,7 +31,9 @@
 #ifndef PNGPP_INFO_HPP_INCLUDED
 #define PNGPP_INFO_HPP_INCLUDED
 
-#include <cassert>
+#pragma once
+
+//#include <cassert>
 #include "info_base.hpp"
 #include "image_info.hpp"
 

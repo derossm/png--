@@ -31,6 +31,8 @@
 #ifndef PNGPP_STREAMING_BASE_HPP_INCLUDED
 #define PNGPP_STREAMING_BASE_HPP_INCLUDED
 
+#pragma once
+
 #include <cassert>
 #include "image_info.hpp"
 #include "pixel_traits.hpp"

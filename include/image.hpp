@@ -31,6 +31,8 @@
 #ifndef PNGPP_IMAGE_HPP_INCLUDED
 #define PNGPP_IMAGE_HPP_INCLUDED
 
+#pragma once
+
 #include <fstream>
 #include "pixel_buffer.hpp"
 #include "generator.hpp"

@@ -31,6 +31,8 @@
 #ifndef PNGPP_REQUIRE_COLOR_SPACE_HPP_INCLUDED
 #define PNGPP_REQUIRE_COLOR_SPACE_HPP_INCLUDED
 
+#pragma once
+
 #include "error.hpp"
 #include "rgb_pixel.hpp"
 #include "rgba_pixel.hpp"

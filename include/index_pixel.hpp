@@ -31,6 +31,8 @@
 #ifndef PNGPP_INDEX_PIXEL_HPP_INCLUDED
 #define PNGPP_INDEX_PIXEL_HPP_INCLUDED
 
+#pragma once
+
 #include "types.hpp"
 #include "packed_pixel.hpp"
 #include "pixel_traits.hpp"

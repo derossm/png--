@@ -31,6 +31,8 @@
 #ifndef PNGPP_END_INFO_HPP_INCLUDED
 #define PNGPP_END_INFO_HPP_INCLUDED
 
+#pragma once
+
 #include "info_base.hpp"
 
 namespace png

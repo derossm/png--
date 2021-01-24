@@ -31,6 +31,8 @@
 #ifndef PNGPP_TRNS_HPP_INCLUDED
 #define PNGPP_TRNS_HPP_INCLUDED
 
+#pragma once
+
 #include <vector>
 #include "color.hpp"
 
