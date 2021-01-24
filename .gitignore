@@ -1,0 +1,13 @@
+.vs/**
+.vscode/**
+build/**
+out/**
+bin/**
+*.vcxproj
+*.sln
+*.filters
+*.log
+*.exe
+*.dll
+*.lib
+*.so
