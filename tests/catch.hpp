@@ -4905,12 +4905,12 @@ namespace Catch {
         Class* classes = (CATCH_UNSAFE_UNRETAINED Class *)malloc( sizeof(Class) * noClasses);
         objc_getClassList( classes, noClasses );
 
-        for( int c = 0; c < noClasses; c++ ) {
+        for( int c = 0; c < noClasses; ++c ) {
             Class cls = classes[c];
             {
                 u_int count;
                 Method* methods = class_copyMethodList( cls, &count );
-                for( u_int m = 0; m < count ; m++ ) {
+                for( u_int m = 0; m < count ; ++m ) {
                     SEL selector = method_getName(methods[m]);
                     std::string methodName = sel_getName(selector);
                     if( startsWith( methodName, "Catch_TestCase_" ) ) {
@@ -11810,7 +11810,7 @@ namespace Catch {
             return names.substr(start, end - start + 1);
         };
         auto skipq = [&] (size_t start, char quote) {
-            for (auto i = start + 1; i < names.size() ; ++i) {
+            for (size_t i = start + 1; i < names.size() ; ++i) {
                 if (names[i] == quote)
                     return i;
                 if (names[i] == '\\')
@@ -14997,7 +14997,9 @@ std::string fpToString( T value, int precision ) {
     std::size_t i = d.find_last_not_of( '0' );
     if( i != std::string::npos && i != d.size()-1 ) {
         if( d[i] == '.' )
-            i++;
+		{
+            ++i;
+		}
         d = d.substr( 0, i+1 );
     }
     return d;

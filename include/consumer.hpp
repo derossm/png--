@@ -47,18 +47,6 @@
 namespace png
 {
 
-#ifdef PNG_READ_SWAP_SUPPORTED
-constexpr const bool png_read_swap_supported{true};
-#else
-constexpr const bool png_read_swap_supported{false};
-#endif
-
-#ifdef PNG_READ_INTERLACING_SUPPORTED
-constexpr const bool png_read_interlacing_supported{true};
-#else
-constexpr const bool png_read_interlacing_supported{false};
-#endif
-
 /**
  * \brief Pixel consumer class template.
  *
@@ -227,7 +215,7 @@ private:
 		{
 			pixel_con->reset(pass);
 
-			for (uint_32 pos{0}; pos < this->get_info().get_height(); ++pos)
+			for (uint32_t pos{0}; pos < this->get_info().get_height(); ++pos)
 			{
 				rd.read_row(pixel_con->get_next_row(pos));
 			}

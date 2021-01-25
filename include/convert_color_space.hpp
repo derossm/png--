@@ -84,13 +84,13 @@ struct convert_color_space_impl
 		printf("<= ");
 		dump_row(row, row_info->rowbytes);
 #endif
-		//for (uint_32 i = row_info->rowbytes; i-- > 0; )
+		//for (uint32_t i = row_info->rowbytes; i-- > 0; )
 		//{
 		//	row[2 * i + 1] = row[i];
 		//	row[2 * i + 0] = 0;
 		//}
-		auto expanded = ::std::span(reinterpret_cast<short*>(row), row_info->rowbytes/2);
-		auto compact = ::std::span(row, row_info->rowbytes/2);
+		auto expanded{::std::span(reinterpret_cast<uint16_t*>(row), row_info->rowbytes/2)};
+		auto compact{::std::span(row, row_info->rowbytes/2)};
 		// need to do this in reverse order, otherwise we could use the ranges version and avoid the explicit temps
 		::std::transform(expanded.rbegin(), expanded.rend(), compact.rbegin(), expanded.rbegin(),
 			[](auto& lhs, auto& rhs)
@@ -110,7 +110,7 @@ struct convert_color_space_impl
 			});
 		if constexpr(enable_logging)
 		{
-			for(auto i{0}; i < row_info->rowbytes; ++i)
+			for(size_t i{0}; i < row_info->rowbytes; ++i)
 			{
 				spdlog::info("{:02}: rows after = 0x {:02x}", i, row[i]);
 			}
@@ -122,10 +122,10 @@ struct convert_color_space_impl
 	}
 
 #ifdef DEBUG_EXPAND_8_16
-	static inline constexpr void dump_row(const byte* row, uint_32 width) noexcept
+	static inline constexpr void dump_row(const byte* row, uint32_t width) noexcept
 	{
 		printf("{");
-		for (uint_32 i = 0; i < width; ++i)
+		for (uint32_t i = 0; i < width; ++i)
 		{
 			printf(" %02x,", row[i]);
 		}
@@ -156,7 +156,7 @@ struct convert_color_space_impl
 	}
 
 	template<typename reader>
-	static inline constexpr void handle_alpha(reader& io, uint_32 filler) noexcept
+	static inline constexpr void handle_alpha(reader& io, uint32_t filler) noexcept
 	{
 		bool src_alpha{(io.get_color_type() & color_mask_alpha)};
 		bool src_tRNS{io.has_chunk(chunk_tRNS)};

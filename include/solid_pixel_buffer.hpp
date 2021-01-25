@@ -51,18 +51,6 @@
 namespace png
 {
 
-#ifdef PNGPP_HAS_STD_MOVE
-constexpr bool pngpp_has_std_move{true};
-#else
-constexpr bool pngpp_has_std_move{false};
-#endif
-
-#ifdef PNGPP_HAS_STATIC_ASSERT
-constexpr bool pngpp_has_static_assert{true};
-#else
-constexpr bool pngpp_has_static_assert{false};
-#endif
-
 /**
  * \brief Pixel buffer, that stores pixels as continuous memory chunk.
  * solid_pixel_buffer is useful when user whats to open png, do some changes and fetch to buffer to draw (as texture for example).
@@ -90,6 +78,19 @@ public:
 	using row_const_access = typename row_traits::row_const_access;
 	using row_type = row_access;
 
+protected:
+	static constexpr const uint64_t bytes_per_pixel{pixel_traits_t::channels * pixel_traits_t::bit_depth / CHAR_BIT};
+
+	uint32_t m_width{0};
+	uint32_t m_height{0};
+	uint64_t m_stride{0};
+	std::vector<byte> m_bytes;
+
+	static_assert(pixel_traits_t::bit_depth % CHAR_BIT == 0, "bit_depth should consist of integer number of bytes");
+	static_assert(sizeof(pixel) * CHAR_BIT == pixel_traits_t::channels * pixel_traits_t::bit_depth, "pixel type should contain channels data only");
+
+private:
+
 	/**
 	 * \brief Constructs an empty 0x0 pixel buffer object.
 	 */
@@ -98,18 +99,27 @@ public:
 	/**
 	 * \brief Constructs an empty pixel buffer object.
 	 */
-	inline constexpr solid_pixel_buffer(uint_32 width, uint_32 height) noexcept
-		: m_width{width}, m_height{height}, m_stride{m_width * bytes_per_pixel}
+	inline constexpr solid_pixel_buffer(uint32_t width, uint32_t height) noexcept : m_width{width}, m_height{height}, m_stride{m_width * bytes_per_pixel}
 	{
 		m_bytes.reserve(height * m_stride);
 	}
 
-	inline constexpr uint_32 get_width() const noexcept
+	inline constexpr ~solid_pixel_buffer() noexcept = default;
+
+	inline constexpr solid_pixel_buffer(const solid_pixel_buffer& other) noexcept = default;
+	inline constexpr solid_pixel_buffer(solid_pixel_buffer&& other) noexcept = default;
+
+	inline constexpr solid_pixel_buffer& operator=(const solid_pixel_buffer& other) noexcept = default;
+	inline constexpr solid_pixel_buffer& operator=(solid_pixel_buffer&& other) noexcept = default;
+
+	inline constexpr auto operator<=>(const solid_pixel_buffer& other) const noexcept = default;
+
+	inline constexpr uint32_t get_width() const noexcept
 	{
 		return m_width;
 	}
 
-	inline constexpr uint_32 get_height() const noexcept
+	inline constexpr uint32_t get_height() const noexcept
 	{
 		return m_height;
 	}
@@ -119,7 +129,7 @@ public:
 	 *
 	 * If new width or height is greater than the original, expanded pixels are filled with value of \a pixel().
 	 */
-	inline constexpr void resize(uint_32 width, uint_32 height) noexcept
+	inline constexpr void resize(uint32_t width, uint32_t height) noexcept
 	{
 		m_width = width;
 		m_height = height;
@@ -144,7 +154,7 @@ public:
 	 */
 	inline constexpr row_const_access get_row(size_t index) const noexcept
 	{
-		return (row_const_access)(&m_bytes.at(index * m_stride));
+		return static_cast<row_const_access>(&m_bytes.at(index * m_stride));
 	}
 
 	/**
@@ -152,7 +162,7 @@ public:
 	 */
 	inline constexpr row_access operator[](size_t index) noexcept
 	{
-		return (row_access)(&m_bytes[index * m_stride]);
+		return static_cast<row_access>(&m_bytes[index * m_stride]);
 	}
 
 	/**
@@ -160,7 +170,7 @@ public:
 	 */
 	inline constexpr row_const_access operator[](size_t index) const noexcept
 	{
-		return (row_const_access)(&m_bytes[index * m_stride]);
+		return static_cast<row_const_access>(&m_bytes[index * m_stride]);
 	}
 
 	/**
@@ -169,7 +179,7 @@ public:
 	inline constexpr void put_row(size_t index, row_const_access r) noexcept
 	{
 		auto row{get_row(index)};
-		/*for (uint_32 i = 0; i < m_width; ++i)
+		/*for (uint32_t i = 0; i < m_width; ++i)
 		{
 			*row++ = *r++;
 		}*/
@@ -180,66 +190,44 @@ public:
 	/**
 	 * \brief Returns a pixel at (x,y) position.
 	 */
-	inline constexpr pixel get_pixel(size_t x, size_t y) const noexcept
+	inline constexpr pixel get_pixel(uint64_t x, uint64_t y) const noexcept
 	{
 		size_t index{(y * m_width + x) * bytes_per_pixel};
-		return *reinterpret_cast<const pixel*>(&m_bytes.at(index));
+		return *(reinterpret_cast<const pixel*>(&m_bytes.at(index)));
 	}
 
 	/**
 	 * \brief Replaces a pixel at (x,y) position.
 	 */
-	inline constexpr void set_pixel(size_t x, size_t y, pixel p) noexcept
+	inline constexpr void set_pixel(uint64_t x, uint64_t y, pixel p) noexcept
 	{
 		size_t index{(y * m_width + x) * bytes_per_pixel};
-		*reinterpret_cast<pixel*>(&m_bytes.at(index)) = p;
+		*(reinterpret_cast<pixel*>(&m_bytes.at(index))) = p;
 	}
 
 	/**
 	 * \brief Provides easy constant read access to underlying byte-buffer.
 	 */
-	inline constexpr const std::vector<byte>& get_bytes() const noexcept
+	inline constexpr const auto get_bytes() const noexcept
 	{
-		return m_bytes;
+		// would prefer to return m_bytes.cbegin(), but unsure how this is used (if at all)
+		return m_bytes.data();
 	}
 
 	/**
 	 * \brief Moves the buffer to client code (c++11 only) .
 	 */
-	inline constexpr std::vector<byte> fetch_bytes() noexcept
+	inline constexpr auto fetch_bytes() noexcept
 	{
-		if constexpr (pngpp_has_std_move)
-		{
-			m_width = 0;
-			m_height = 0;
-			m_stride = 0;
+		m_width = 0;
+		m_height = 0;
+		m_stride = 0;
 
-			// the buffer is moved outside without copying and leave m_bytes empty.
-			// NOTE: inhibiting RVO with explicit move of a member variable instead of using an rvalue
-			// also leaving m_bytes in a state of undefined behavior if accessed FIXME
-			return std::move(m_bytes);
-		}
-		else
-		{
-			return std::vector<byte>{};
-		}
+		auto tmp{std::move(m_bytes)};	// Note: tmp is RVO eligible, thus zero added overhead cost to do the single move here.
+		m_bytes.clear();				// As a result, we can ensure the moved-from vector is cleared. PROFILE to see if this is ever an issue.
+										// As of C++20, std doesn't specify vector moved-from behavior to compilers; some clear, some don't.
+		return tmp;
 	}
-
-protected:
-	static constexpr const size_t bytes_per_pixel{pixel_traits_t::channels * pixel_traits_t::bit_depth / CHAR_BIT};
-
-protected:
-	uint_32 m_width{0};
-	uint_32 m_height{0};
-	size_t m_stride{0};
-	std::vector<byte> m_bytes;
-
-	//if constexpr (pngpp_has_static_assert)
-	//{
-		static_assert(pixel_traits_t::bit_depth% CHAR_BIT == 0, "Bit_depth should consist of integer number of bytes");
-
-		static_assert(sizeof(pixel)* CHAR_BIT == pixel_traits_t::channels * pixel_traits_t::bit_depth, "pixel type should contain channels data only");
-	//}
 };
 
 /**

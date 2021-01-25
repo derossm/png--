@@ -104,22 +104,22 @@ public:
 		*this = ::std::move(other);
 	}*/
 
-	inline constexpr uint_32 get_width() const noexcept
+	inline constexpr uint32_t get_width() const noexcept
 	{
 		return m_width;
 	}
 
-	inline constexpr void set_width(uint_32 width) noexcept
+	inline constexpr void set_width(uint32_t width) noexcept
 	{
 		m_width = width;
 	}
 
-	inline constexpr uint_32 get_height() const noexcept
+	inline constexpr uint32_t get_height() const noexcept
 	{
 		return m_height;
 	}
 
-	inline constexpr void set_height(uint_32 height) noexcept
+	inline constexpr void set_height(uint32_t height) noexcept
 	{
 		m_height = height;
 	}
@@ -224,8 +224,8 @@ public:
 	}
 
 protected:
-	uint_32 m_width{0};
-	uint_32 m_height{0};
+	uint32_t m_width{0};
+	uint32_t m_height{0};
 	int m_bit_depth{0};
 	color_type m_color_type{color_type_none};
 	interlace_type m_interlace_type{interlace_none};

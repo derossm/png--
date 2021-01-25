@@ -39,8 +39,6 @@ namespace png
 {
 
 using byte = png_byte;
-using uint_16 = png_uint_16;
-using uint_32 = png_uint_32;
 using fixed_point = png_fixed_point;
 using color_info = png_color_8;
 using color_info_16 = png_color_16;

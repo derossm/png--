@@ -174,7 +174,7 @@ constexpr bool enable_logging{true};
  * //...
  * png::image< png::index_pixel > image;
  * png::palette pal(256);
- * for (size_t i = 0; i < pal.size(); ++i)
+ * for (size_t i{0}; i < pal.size(); ++i)
  * {
  *		pal[i] = png::color(i, 255 - i, i);
  * }

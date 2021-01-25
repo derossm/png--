@@ -145,7 +145,7 @@ public:
 		{
 			pixel_gen->reset(pass);
 
-			for (uint_32 pos{0}; pos < this->get_info().get_height(); ++pos)
+			for (uint32_t pos{0}; pos < this->get_info().get_height(); ++pos)
 			{
 				wr.write_row(pixel_gen->get_next_row(pos));
 			}
@@ -165,7 +165,7 @@ protected:
 	/**
 	 * \brief Constructs a generator object prepared to generate an image of specified width and height.
 	 */
-	inline constexpr generator(size_t width, size_t height) noexcept : base(width, height) {}
+	inline constexpr generator(uint64_t width, uint64_t height) noexcept : base(width, height) {}
 };
 
 } // namespace png

@@ -73,7 +73,7 @@ using rgba_pixel = basic_rgba_pixel<byte>;
 /**
  * The 16-bit RGBA pixel type.
  */
-using rgba_pixel_16 = basic_rgba_pixel<uint_16>;
+using rgba_pixel_16 = basic_rgba_pixel<uint16_t>;
 
 /**
  * \brief Pixel traits specialization for basic_rgba_pixel.

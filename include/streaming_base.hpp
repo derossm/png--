@@ -88,7 +88,7 @@ public:
 
 	explicit inline constexpr streaming_base(image_info& info) noexcept : m_info_holder(info) {}
 
-	inline constexpr streaming_base(uint_32 width, uint_32 height) noexcept : m_info_holder(make_image_info<pixel>())
+	inline constexpr streaming_base(uint32_t width, uint32_t height) noexcept : m_info_holder(make_image_info<pixel>())
 	{
 		get_info().set_width(width);
 		get_info().set_height(height);

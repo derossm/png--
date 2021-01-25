@@ -76,17 +76,17 @@ public:
 	/**
 	 * \brief Constructs an empty pixel buffer object.
 	 */
-	inline constexpr basic_pixel_buffer(uint_32 width, uint_32 height) noexcept : m_width(0), m_height(0)
+	inline constexpr basic_pixel_buffer(uint32_t width, uint32_t height) noexcept : m_width(0), m_height(0)
 	{
 		resize(width, height);
 	}
 
-	inline constexpr uint_32 get_width() const noexcept
+	inline constexpr uint32_t get_width() const noexcept
 	{
 		return m_width;
 	}
 
-	inline constexpr uint_32 get_height() const noexcept
+	inline constexpr uint32_t get_height() const noexcept
 	{
 		return m_height;
 	}
@@ -96,7 +96,7 @@ public:
 	 *
 	 * If new width or height is greater than the original, expanded pixels are filled with value of \a pixel().
 	 */
-	inline constexpr void resize(uint_32 width, uint_32 height) noexcept
+	inline constexpr void resize(uint32_t width, uint32_t height) noexcept
 	{
 		m_width = width;
 		m_height = height;
@@ -155,7 +155,7 @@ public:
 	/**
 	 * \brief Returns a pixel at (x,y) position.
 	 */
-	inline constexpr pixel get_pixel(size_t x, size_t y) const noexcept
+	inline constexpr pixel get_pixel(uint64_t x, uint64_t y) const noexcept
 	{
 		return get_row(y).at(x);
 	}
@@ -163,14 +163,14 @@ public:
 	/**
 	 * \brief Replaces a pixel at (x,y) position.
 	 */
-	inline constexpr void set_pixel(size_t x, size_t y, pixel p) noexcept
+	inline constexpr void set_pixel(uint64_t x, uint64_t y, pixel p) noexcept
 	{
 		get_row(y).at(x) = p;
 	}
 
 protected:
-	uint_32 m_width;
-	uint_32 m_height;
+	uint32_t m_width;
+	uint32_t m_height;
 	using row_vec = std::vector<row_type>;
 	row_vec m_rows;
 };
@@ -201,7 +201,7 @@ class pixel_buffer : public basic_pixel_buffer<pixel, std::vector<pixel>>
 public:
 	inline constexpr pixel_buffer() noexcept {}
 
-	inline constexpr pixel_buffer(uint_32 width, uint_32 height) noexcept : basic_pixel_buffer<pixel, std::vector< pixel>>(width, height) {}
+	inline constexpr pixel_buffer(uint32_t width, uint32_t height) noexcept : basic_pixel_buffer<pixel, std::vector< pixel>>(width, height) {}
 };
 
 namespace detail
@@ -274,7 +274,7 @@ public:
 		return *this = static_cast<pixel>(other);
 	}
 
-	inline constexpr packed_pixel_proxy& operator=(pixel p) noexcept
+	inline constexpr packed_pixel_proxy& operator=(const pixel& p) noexcept
 	{
 		this->m_ref = (this->m_ref & ~(pixel::get_bit_mask() << this->m_shift)) | (p << this->m_shift);
 		return *this;
@@ -291,14 +291,33 @@ public:
 template<typename pixel>
 class packed_pixel_row
 {
+private:
+	size_t m_size;
+	std::vector<byte> m_vec;
+
+	static inline constexpr size_t get_pixels_per_byte() noexcept
+	{
+		return CHAR_BIT / pixel::get_bit_depth();
+	}
+
 public:
 	/**
 	 * \brief Constructs a pixel row object for \c size packed pixels.
 	 */
 	explicit inline constexpr packed_pixel_row(size_t size = 0) noexcept
-	{
-		resize(size);
-	}
+		: m_size{size}, m_vec(size / get_pixels_per_byte() + (size % get_pixels_per_byte() ? 1 : 0)) {}
+
+	inline constexpr ~packed_pixel_row() noexcept = default;
+
+	// default or delete ctor/mtor? FIXME
+	inline constexpr packed_pixel_row(const packed_pixel_row& other) noexcept = default;
+	inline constexpr packed_pixel_row(packed_pixel_row&& other) noexcept = default;
+
+	inline constexpr packed_pixel_row& operator=(const packed_pixel_row& other) noexcept = default;
+	inline constexpr packed_pixel_row& operator=(packed_pixel_row&& other) noexcept = default;
+
+	// default or delete comparison? FIXME
+	inline constexpr auto operator<=>(const packed_pixel_row& other) const noexcept = default;
 
 	inline constexpr size_t size() const noexcept
 	{
@@ -310,8 +329,8 @@ public:
 	 */
 	inline constexpr void resize(size_t size) noexcept
 	{
-		m_vec.resize(size / get_pixels_per_byte() + (size % get_pixels_per_byte() ? 1 : 0));
 		m_size = size;
+		m_vec.resize(size / get_pixels_per_byte() + (size % get_pixels_per_byte() ? 1 : 0));
 	}
 
 	/**
@@ -362,18 +381,9 @@ public:
 	 */
 	inline constexpr byte* get_data() noexcept
 	{
-		assert(m_vec.size());
+		//assert(m_vec.size());
 		return &m_vec[0];
 	}
-
-private:
-	static inline constexpr size_t get_pixels_per_byte() noexcept
-	{
-		return 8 / pixel::get_bit_depth();
-	}
-
-	std::vector<byte> m_vec;
-	size_t m_size;
 };
 
 /**
@@ -396,33 +406,28 @@ public:
  * \brief The pixel buffer class template specialization for the packed_gray_pixel type.
  */
 template<int bits>
-class pixel_buffer<packed_gray_pixel<bits>>
-	: public basic_pixel_buffer<packed_gray_pixel<bits>, packed_pixel_row<packed_gray_pixel<bits>>>
+class pixel_buffer<packed_gray_pixel<bits>> : public basic_pixel_buffer<packed_gray_pixel<bits>, packed_pixel_row<packed_gray_pixel<bits>>>
 {
 public:
 	using pixel_type = packed_gray_pixel<bits>;
 	using pixel_row_type = packed_pixel_row<pixel_type>;
 
-	inline constexpr pixel_buffer() noexcept {}
-
-	inline constexpr pixel_buffer(uint_32 width, uint_32 height) noexcept
-		: basic_pixel_buffer<pixel_type, pixel_row_type>(width, height) {}
+	inline constexpr pixel_buffer() noexcept = default;
+	inline constexpr pixel_buffer(uint32_t width, uint32_t height) noexcept : basic_pixel_buffer<pixel_type, pixel_row_type>(width, height) {}
 };
 
 /**
  * \brief The pixel buffer class template specialization for the packed_index_pixel type.
  */
 template<int bits>
-class pixel_buffer<packed_index_pixel<bits>>
-	: public basic_pixel_buffer<packed_index_pixel<bits>, packed_pixel_row<packed_index_pixel<bits>>>
+class pixel_buffer<packed_index_pixel<bits>> : public basic_pixel_buffer<packed_index_pixel<bits>, packed_pixel_row<packed_index_pixel<bits>>>
 {
 public:
 	using pixel_type = packed_index_pixel<bits>;
 	using pixel_row_type = packed_pixel_row<pixel_type>;
 
-	inline constexpr pixel_buffer() noexcept {}
-
-	inline constexpr pixel_buffer(uint_32 width, uint_32 height) noexcept : basic_pixel_buffer<pixel_type, pixel_row_type>(width, height) {}
+	inline constexpr pixel_buffer() noexcept = default;
+	inline constexpr pixel_buffer(uint32_t width, uint32_t height) noexcept : basic_pixel_buffer<pixel_type, pixel_row_type>(width, height) {}
 };
 
 } // namespace png

@@ -44,6 +44,7 @@ set(WIN64_COMPILE_OPTIONS
 	"/fp:precise" "/GS" "/Gd" "/Gm-" "/FC" "/EHsc" "/nologo" "/WX-" "/MDd" "/MP"
 	"/permissive-" "/W4" "/Od" "/arch:AVX2")
 
+# _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1
 #if(MSVC)
 #	#add_definitions("/D_CRT_SECURE_NO_WARNINGS" "/D_CRT_SECURE_NO_DEPRECATE" "/D_CRT_NONSTDC_NO_DEPRECATE")
 #else()

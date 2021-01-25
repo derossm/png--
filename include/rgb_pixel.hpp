@@ -68,14 +68,13 @@ using rgb_pixel = basic_rgb_pixel<byte>;
 /**
  * The 16-bit RGB pixel type.
  */
-using rgb_pixel_16 = basic_rgb_pixel<uint_16>;
+using rgb_pixel_16 = basic_rgb_pixel<uint16_t>;
 
 /**
  * \brief Pixel traits specialization for basic_rgb_pixel.
  */
 template<typename T>
-struct pixel_traits<basic_rgb_pixel<T>> : basic_pixel_traits<basic_rgb_pixel<T>, T, color_type_rgb>
-{};
+struct pixel_traits<basic_rgb_pixel<T>> : basic_pixel_traits<basic_rgb_pixel<T>, T, color_type_rgb> {};
 
 } // namespace png
 

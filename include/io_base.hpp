@@ -40,17 +40,20 @@
 #include "info.hpp"
 #include "end_info.hpp"
 
-static void trace_io_transform(const char* fmt, ...)
-{
-#ifdef DEBUG_IO_TRANSFORM
-	va_list va;
-	va_start(va, fmt);
-	fprintf(stderr, "TRANSFORM_IO: ");
-	vfprintf(stderr, fmt, va);
-	va_end(va);
-#endif
-}
-#define TRACE_IO_TRANSFORM trace_io_transform
+#include <spdlog/spdlog.h>
+
+//static void trace_io_transform(const char* fmt, ...)
+//{
+//#ifdef DEBUG_IO_TRANSFORM
+//	va_list va;
+//	va_start(va, fmt);
+//	fprintf(stderr, "TRANSFORM_IO: ");
+//	vfprintf(stderr, fmt, va);
+//	va_end(va);
+//#endif
+//}
+//#define TRACE_IO_TRANSFORM trace_io_transform
+#define TRACE_IO_TRANSFORM ::spdlog::info
 
 namespace png
 {
@@ -118,22 +121,22 @@ public:
 	//////////////////////////////////////////////////////////////////////
 	// info accessors
 	//
-	inline constexpr uint_32 get_width() const noexcept
+	inline constexpr uint32_t get_width() const noexcept
 	{
 		return m_info.get_width();
 	}
 
-	inline constexpr void set_width(uint_32 width) noexcept
+	inline constexpr void set_width(uint32_t width) noexcept
 	{
 		m_info.set_width(width);
 	}
 
-	inline constexpr uint_32 get_height() const noexcept
+	inline constexpr uint32_t get_height() const noexcept
 	{
 		return m_info.get_height();
 	}
 
-	inline constexpr void set_height(uint_32 height) noexcept
+	inline constexpr void set_height(uint32_t height) noexcept
 	{
 		m_info.set_height(height);
 	}
@@ -192,7 +195,7 @@ public:
 
 	inline bool has_chunk(chunk id) noexcept
 	{
-		return png_get_valid(m_png.get(), m_info.get_png_info(), static_cast<uint_32>(id)) == static_cast<uint_32>(id);
+		return png_get_valid(m_png.get(), m_info.get_png_info(), static_cast<uint32_t>(id)) == static_cast<uint32_t>(id);
 	}
 
 #if defined(PNG_READ_EXPAND_SUPPORTED)
@@ -275,14 +278,14 @@ public:
 #endif
 
 #if defined(PNG_READ_FILLER_SUPPORTED) || defined(PNG_WRITE_FILLER_SUPPORTED)
-	inline void set_filler(uint_32 filler, filler_type type) const noexcept
+	inline void set_filler(uint32_t filler, filler_type type) const noexcept
 	{
 		TRACE_IO_TRANSFORM("png_set_filler: filler=%08x, type=%d\n", filler, type);
 		png_set_filler(m_png.get(), filler, type);
 	}
 
 #if !defined(PNG_1_0_X)
-	inline void set_add_alpha(uint_32 filler, filler_type type) const noexcept
+	inline void set_add_alpha(uint32_t filler, filler_type type) const noexcept
 	{
 		TRACE_IO_TRANSFORM("png_set_add_alpha: filler=%08x, type=%d\n", filler, type);
 		png_set_add_alpha(m_png.get(), filler, type);
@@ -331,7 +334,7 @@ public:
 	{
 		TRACE_IO_TRANSFORM("png_set_shift: gray_bits=%d, alpha_bits=%d\n", gray_bits, alpha_bits);
 
-		//if (auto type = get_color_type(); type != color_type_gray || type != color_type_gray_alpha)
+		//if (auto type{get_color_type()}; type != color_type_gray || type != color_type_gray_alpha)
 		if (get_color_type() != color_type_gray || get_color_type() != color_type_gray_alpha)
 		{
 			throw error("set_shift: expected Gray or Gray+Alpha color type");

@@ -66,7 +66,7 @@ using ga_pixel = basic_ga_pixel<byte>;
 /**
  * \brief The 16-bit Gray+Alpha pixel type.
  */
-using ga_pixel_16 = basic_ga_pixel<uint_16>;
+using ga_pixel_16 = basic_ga_pixel<uint16_t>;
 
 /**
  * \brief Pixel traits specialization for basic_ga_pixel.

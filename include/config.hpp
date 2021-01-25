@@ -33,6 +33,12 @@
 
 #pragma once
 
+namespace png
+{
+
+//inline static constexpr const bool pngpp_has_std_move{true};
+//inline static constexpr const bool pngpp_has_static_assert{true};
+
 inline static constexpr const bool __little_endian{
 	[](){
 		constexpr const uint16_t bytes{255u}; // fill one byte with 1's, the other byte with zero's
@@ -52,7 +58,18 @@ inline static constexpr const bool __little_endian{
 	}()
 };
 
-#define PNGPP_HAS_STATIC_ASSERT
-#define PNGPP_HAS_STD_MOVE
+#ifdef PNG_READ_SWAP_SUPPORTED
+constexpr const bool png_read_swap_supported{true};
+#else
+constexpr const bool png_read_swap_supported{false};
+#endif
+
+#ifdef PNG_READ_INTERLACING_SUPPORTED
+constexpr const bool png_read_interlacing_supported{true};
+#else
+constexpr const bool png_read_interlacing_supported{false};
+#endif
+
+} // end namespace png
 
 #endif // PNGPP_CONFIG_HPP_INCLUDED

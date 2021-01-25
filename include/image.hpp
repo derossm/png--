@@ -103,7 +103,7 @@ public:
 	/**
 	 * \brief Constructs an empty image of specified width and height.
 	 */
-	inline constexpr image(uint_32 width, uint_32 height) noexcept : m_info(make_image_info<pixel>())
+	inline constexpr image(uint32_t width, uint32_t height) noexcept : m_info(make_image_info<pixel>())
 	{
 		resize(width, height);
 	}
@@ -293,12 +293,12 @@ public:
 		m_pixbuf = buffer;
 	}
 
-	inline constexpr uint_32 get_width() const noexcept
+	inline constexpr uint32_t get_width() const noexcept
 	{
 		return m_pixbuf.get_width();
 	}
 
-	inline constexpr uint_32 get_height() const noexcept
+	inline constexpr uint32_t get_height() const noexcept
 	{
 		return m_pixbuf.get_height();
 	}
@@ -306,7 +306,7 @@ public:
 	/**
 	 * \brief Resizes the image pixel buffer.
 	 */
-	inline constexpr void resize(uint_32 width, uint_32 height) noexcept
+	inline constexpr void resize(uint32_t width, uint32_t height) noexcept
 	{
 		m_pixbuf.resize(width, height);
 		m_info.set_width(width);
@@ -352,7 +352,7 @@ public:
 	/**
 	 * \brief Returns a pixel at (x,y) position.
 	 */
-	inline constexpr pixel get_pixel(size_t x, size_t y) const noexcept
+	inline constexpr pixel get_pixel(uint64_t x, uint64_t y) const noexcept
 	{
 		return m_pixbuf.get_pixel(x, y);
 	}
@@ -360,7 +360,7 @@ public:
 	/**
 	 * \brief Replaces a pixel at (x,y) position.
 	 */
-	inline constexpr void set_pixel(size_t x, size_t y, pixel p) noexcept
+	inline constexpr void set_pixel(uint64_t x, uint64_t y, pixel p) noexcept
 	{
 		m_pixbuf.set_pixel(x, y, p);
 	}

@@ -87,11 +87,11 @@ TEST_CASE("convert_color_space_impl tests", "[PNGPP]")
 	png_row_info ri1;
 	byte* bptr = new byte[16];
 
-	for (auto i = 0; i < 8; ++i)
+	for (size_t i{0}; i < 8; ++i)
 	{
 		bptr[i] = i + 147;
 	}
-	for (auto i = 8; i < 16; ++i)
+	for (size_t i{8}; i < 16; ++i)
 	{
 		bptr[i] = 0;
 	}

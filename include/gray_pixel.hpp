@@ -48,7 +48,7 @@ using gray_pixel = byte;
 /**
  * \brief The 16-bit Grayscale pixel type.
  */
-using gray_pixel_16 = uint_16;
+using gray_pixel_16 = uint16_t;
 
 /**
  * \brief The packed gray pixel class template. The available specializations are for 1-, 2- and 4-bit pixels.
@@ -85,7 +85,7 @@ struct pixel_traits<gray_pixel> : basic_pixel_traits<gray_pixel, byte, color_typ
  * \brief Pixel traits specialization for gray_pixel_16.
  */
 template<>
-struct pixel_traits<gray_pixel_16> : basic_pixel_traits<gray_pixel_16, uint_16, color_type_gray> {};
+struct pixel_traits<gray_pixel_16> : basic_pixel_traits<gray_pixel_16, uint16_t, color_type_gray> {};
 
 /**
  * \brief Pixel traits specialization for packed_gray_pixel.
