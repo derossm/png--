@@ -33,67 +33,26 @@
 
 #pragma once
 
-#include <stdlib.h>
+inline static constexpr const bool __little_endian{
+	[](){
+		constexpr const uint16_t bytes{255u}; // fill one byte with 1's, the other byte with zero's
+		constexpr const uint16_t test{(bytes & 0xFF00)}; // check which byte is all zero
 
-// Endianness test
-#if defined(__GLIBC__)
+		// note that if this isn't a valid way to determine endianess, then the system must behave endian neutral to our code and therefore
+		// the result is irrelevant since the only time endianess matters to us is when using bitwise operations across byte boundaries
+		// (or the compiler is entirely non-conformant, but we don't code for that)
+		if constexpr (test == 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}()
+};
 
-#include <endian.h>
-
-#elif defined(_WIN32)
-
-#define	__LITTLE_ENDIAN	1234
-#define	__BIG_ENDIAN	4321
-#define __BYTE_ORDER __LITTLE_ENDIAN
-
-#elif defined(__APPLE__)
-
-#include <machine/endian.h>
-#include <sys/_endian.h>
-
-#elif defined(__FreeBSD__)
-
-#include <machine/endian.h>
-#include <sys/endian.h>
-
-#elif defined(__sun)
-
-#include <sys/isa_defs.h>
-
-#else
-
-#error Byte-order could not be detected.
-
-#endif
-
-// Determine C++11 features
-#if defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__) && defined(__GXX_EXPERIMENTAL_CXX0X__)
-
-#define PNGPP_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-// gcc c++11 support list
-// http://gcc.gnu.org/projects/cxx0x.html
-
-// gcc supports static_assert since 4.3
-#if (PNGPP_GCC_VERSION >= 40300)
-#define PNGPP_HAS_STATIC_ASSERT true
-#endif
-
-// gcc supports std::move since 4.6
-#if (PNGPP_GCC_VERSION >= 40600)
-#define PNGPP_HAS_STD_MOVE true
-#endif
-
-#undef PNGPP_GCC_VERSION true
-
-#elif defined(_MSC_VER)
-
-// MS Visual C++ compiler supports static_assert and std::move since VS2010
-// http://blogs.msdn.com/b/vcblog/archive/2011/09/12/10209291.aspx
-#if (_MSC_VER >= 1600)
-#define PNGPP_HAS_STATIC_ASSERT true
-#define PNGPP_HAS_STD_MOVE true
-#endif
-
-#endif
+#define PNGPP_HAS_STATIC_ASSERT
+#define PNGPP_HAS_STD_MOVE
 
 #endif // PNGPP_CONFIG_HPP_INCLUDED

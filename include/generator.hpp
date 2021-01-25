@@ -49,9 +49,7 @@ namespace png
 /**
  * \brief Pixel generator class template.
  *
- * Used as a base class for custom pixel generator classes as well
- * as inside image class implementation to write pixels from the
- * pixel buffer.
+ * Used as a base class for custom pixel generator classes as well as inside image class implementation to write pixels from the pixel buffer.
  *
  * A usage example can be found in \c example/pixel_generator.cpp.
  *
@@ -64,48 +62,30 @@ namespace png
  * };
  * \endcode
  *
- * Your pixel %generator class should implement \c get_next_row()
- * method and \c reset() method (optional). Their signatures are
- * as follows:
+ * Your pixel %generator class should implement \c get_next_row() method and \c reset() method (optional). Their signatures are as follows:
  *
  * \code
  * png::byte* get_next_row(png::uint_32 pos);
  * void reset(size_t pass);
  * \endcode
  *
- * The \c get_next_row() method is called every time a new row of
- * %image data is needed by the writer. The position of the row
- * being written is passed as \c pos parameter. The \c pos takes
- * values from \c 0 to \c <image_height>-1 inclusively. The
- * method should return the starting address of a row buffer
- * storing an appropriate amount of pixels (i.e. the width of the
- * %image being written). The address should be casted to
- * png::byte* pointer type using \c reinterpret_cast<> or a
- * C-style cast.
+ * The \c get_next_row() method is called every time a new row of %image data is needed by the writer. The position of the row being written is
+ * passed as \c pos parameter. The \c pos takes values from \c 0 to \c <image_height>-1 inclusively. The method should return the starting
+ * address of a row buffer storing an appropriate amount of pixels (i.e. the width of the %image being written). The address should be casted
+ * to png::byte* pointer type using \c reinterpret_cast<> or a C-style cast.
  *
- * The optional \c reset() method is called every time the new
- * pass of interlaced %image processing starts. The number of
- * interlace pass is avaiable as the only parameter of the method.
- * For non-interlaced images the method is called once prior to
- * any calls to \c get_next_row(). The value of \c 0 is passed
- * for the \c pass number. You do not have to implement this
- * method unless you are going to support interlaced %image
- * generation.
+ * The optional \c reset() method is called every time the new pass of interlaced %image processing starts. The number of interlace pass is
+ * avaiable as the only parameter of the method. For non-interlaced images the method is called once prior to any calls to \c get_next_row().
+ * The value of \c 0 is passed for the \c pass number. You do not have to implement this method unless you are going to support interlaced %image generation.
  *
- * An optional template parameter \c info_holder encapsulated
- * image_info storage policy. Please refer to consumer class
- * documentation for the detailed description of this parameter.
+ * An optional template parameter \c info_holder encapsulated image_info storage policy.
+ * Please refer to consumer class documentation for the detailed description of this parameter.
  *
- * An optional \c bool template parameter \c interlacing_supported
- * specifies whether writing interlacing images is supported by
- * your %generator class. It defaults to \c false. An attempt to
- * write an interlaced %image will result in throwing
- * \c std::logic_error.
+ * An optional \c bool template parameter \c interlacing_supported specifies whether writing interlacing images is supported by your %generator class.
+ * It defaults to \c false. An attempt to write an interlaced %image will result in throwing \c std::logic_error.
  *
- * In order to fully support interlacing specify \c true for \c
- * interlacing_supported parameter and implement \c reset()
- * method. You _must_ generate the same pixels for every pass to
- * get the correct PNG %image output.
+ * In order to fully support interlacing specify \c true for \c interlacing_supported parameter and implement \c reset() method.
+ * You _must_ generate the same pixels for every pass to get the correct PNG %image output.
  *
  * \see image, consumer
  */
@@ -117,28 +97,27 @@ public:
 	/**
 	 * \brief Writes an image to the stream.
 	 *
-	 * Essentially, this method constructs a writer object and
-	 * instructs it to write the image to the stream. It handles
-	 * writing interlaced images as long as your generator class
-	 * supports this.
+	 * Essentially, this method constructs a writer object and instructs it to write the image to the stream.
+	 * It handles writing interlaced images as long as your generator class supports this.
 	 */
 	template<typename ostream>
-	inline constexpr void write(ostream& stream) noexcept
+	inline constexpr void write(ostream& stream)
 	{
 		writer<ostream> wr(stream);
 		wr.set_image_info(this->get_info());
 		wr.write_info();
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-		if (pixel_traits<pixel>::get_bit_depth() == 16)
+		if constexpr (__little_endian)
 		{
+			if (pixel_traits<pixel>::get_bit_depth() == 16)
+			{
 #ifdef PNG_WRITE_SWAP_SUPPORTED
-			wr.set_swap();
+				wr.set_swap();
 #else
-			throw error("Cannot write 16-bit image: recompile with PNG_WRITE_SWAP_SUPPORTED.");
+				throw error("Cannot write 16-bit image: recompile with PNG_WRITE_SWAP_SUPPORTED.");
 #endif
+			}
 		}
-#endif
 
 		size_t pass_count;
 		if (this->get_info().get_interlace_type() != interlace_none)
@@ -160,6 +139,7 @@ public:
 		{
 			pass_count = 1;
 		}
+
 		auto pixel_gen{static_cast<pixgen*>(this)};
 		for (size_t pass{0}; pass < pass_count; ++pass)
 		{
@@ -178,15 +158,12 @@ protected:
 	using base = streaming_base<pixel, info_holder>;
 
 	/**
-	 * \brief Constructs a generator object using passed image_info
-	 * object to store image information.
+	 * \brief Constructs a generator object using passed image_info object to store image information.
 	 */
-	explicit inline constexpr generator(image_info& info) noexcept : base(info)
-	{}
+	explicit inline constexpr generator(image_info& info) noexcept : base(info) {}
 
 	/**
-	 * \brief Constructs a generator object prepared to generate
-	 * an image of specified width and height.
+	 * \brief Constructs a generator object prepared to generate an image of specified width and height.
 	 */
 	inline constexpr generator(size_t width, size_t height) noexcept : base(width, height) {}
 };

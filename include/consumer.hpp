@@ -48,15 +48,15 @@ namespace png
 {
 
 #ifdef PNG_READ_SWAP_SUPPORTED
-constexpr bool png_read_swap_supported{true};
+constexpr const bool png_read_swap_supported{true};
 #else
-constexpr bool png_read_swap_supported{false};
+constexpr const bool png_read_swap_supported{false};
 #endif
 
 #ifdef PNG_READ_INTERLACING_SUPPORTED
-constexpr bool png_read_interlacing_supported{true};
+constexpr const bool png_read_interlacing_supported{true};
 #else
-constexpr bool png_read_interlacing_supported{false};
+constexpr const bool png_read_interlacing_supported{false};
 #endif
 
 /**
@@ -80,45 +80,28 @@ constexpr bool png_read_interlacing_supported{false};
  * void reset(size_t pass);
  * \endcode
  *
- * The \c get_next_row() method is called every time a new row of
- * %image data is available to the reader. The position of the row
- * being read is passed as \c pos parameter. The \c pos takes
- * values from \c 0 to \c <image_height>-1 inclusively. The
- * method should return the starting address of a row buffer
- * capable of storing appropriate amount of pixels (i.e. the width
- * of the %image being read). The address should be casted to
- * png::byte* pointer type using \c reinterpret_cast<> or a
- * C-style cast.
+ * The \c get_next_row() method is called every time a new row of %image data is available to the reader. The position of the row being read is
+ * passed as \c pos parameter. The \c pos takes values from \c 0 to \c <image_height>-1 inclusively. The method should return the starting
+ * address of a row buffer capable of storing appropriate amount of pixels (i.e. the width of the %image being read). The address should be
+ * casted to png::byte* pointer type using \c reinterpret_cast<> or a C-style cast.
  *
- * The optional \c reset() method is called every time the new
- * pass of interlaced %image processing starts. The number of
- * interlace pass is avaiable as the only parameter of the method.
- * For non-interlaced images the method is called once prior to
- * any calls to \c get_next_row(). The value of \c 0 is passed
- * for the \c pass number.
+ * The optional \c reset() method is called every time the new pass of interlaced %image processing starts. The number of interlace pass is
+ * avaiable as the only parameter of the method. For non-interlaced images the method is called once prior to any calls to \c get_next_row().
+ * The value of \c 0 is passed for the \c pass number.
  *
- * An optional template parameter \c info_holder encapsulates
- * image_info storage policy. Using def_image_info_holder results
- * in image_info object stored as a sub-object of the consumer
- * class. You may specify image_info_ref_holder in order to use a
- * reference to the externally stored image_info object. This way
- * you will have to construct the consumer object passing the
- * reference to image_info object.
+ * An optional template parameter \c info_holder encapsulates image_info storage policy. Using def_image_info_holder results in image_info object
+ * stored as a sub-object of the consumer class. You may specify image_info_ref_holder in order to use a reference to the externally stored
+ * image_info object. This way you will have to construct the consumer object passing the reference to image_info object.
  *
- * Also, you might want implement an %info holder object yourself
- * to fine-tune your code. In any case, you can access the
- * image_info object from your %consumer class methods using the
- * following code:
+ * Also, you might want implement an %info holder object yourself to fine-tune your code. In any case, you can access the image_info object
+ * from your %consumer class methods using the following code:
  *
  * \code
  * png::image_info& info = m_info_holder.get_info();
  * \endcode
  *
- * An optional \c bool template parameter \c interlacing_supported
- * specifies whether reading interlacing images is supported by
- * your %consumer class. It defaults to \c false. An attempt to
- * read an interlaced %image will result in discarding pixels
- * obtained at all the interlacing passes except the last one.
+ * An optional \c bool template parameter \c interlacing_supported specifies whether reading interlacing images is supported by your %consumer class.
+ * It defaults to \c false. An attempt to read an interlaced %image will result in discarding pixels obtained at all the interlacing passes except the last one.
  *
  * In order to fully support interlacing specify \c true for \c interlacing_supported parameter and implement \c reset() method.
  *
@@ -146,13 +129,13 @@ public:
 	 * It handles IO transformation, as well as interlaced image reading.
 	 */
 	template<typename istream, typename transformation>
-	inline constexpr void read(istream& stream, const transformation& transform = transform_identity()) noexcept
+	inline constexpr void read(istream& stream, const transformation& transform = transform_identity())
 	{
 		reader<istream> rd(stream);
 		rd.read_info();
 		transform(rd);
 
-		if constexpr (__BYTE_ORDER == __LITTLE_ENDIAN)
+		if constexpr (__little_endian)
 		{
 			if constexpr (png_read_swap_supported)
 			{
@@ -204,6 +187,8 @@ public:
 		rd.read_end_info();
 	}
 
+	inline constexpr auto operator<=>(const consumer&) const noexcept = default;
+
 protected:
 	using base = streaming_base<pixel, info_holder>;
 
@@ -216,13 +201,11 @@ private:
 	consumer() = delete;
 	~consumer() = default;
 
-	inline constexpr consumer(const consumer&) noexcept = default;
-	inline constexpr consumer(consumer&&) noexcept = default;
+	inline constexpr consumer(const consumer&) noexcept = delete;
+	inline constexpr consumer(consumer&&) noexcept = delete;
 
-	inline constexpr consumer& operator=(const consumer&) noexcept = default;
-	inline constexpr consumer& operator=(consumer&&) noexcept = default;
-
-	inline constexpr auto operator<=>(const consumer&) const noexcept = default;
+	inline constexpr consumer& operator=(const consumer&) noexcept = delete;
+	inline constexpr consumer& operator=(consumer&&) noexcept = delete;
 
 	template<typename istream>
 	inline constexpr void skip_interlaced_rows(reader<istream>& rd, size_t pass_count) noexcept

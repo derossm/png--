@@ -91,11 +91,12 @@ struct convert_color_space_impl
 		//}
 		auto expanded = ::std::span(reinterpret_cast<short*>(row), row_info->rowbytes/2);
 		auto compact = ::std::span(row, row_info->rowbytes/2);
+		// need to do this in reverse order, otherwise we could use the ranges version and avoid the explicit temps
 		::std::transform(expanded.rbegin(), expanded.rend(), compact.rbegin(), expanded.rbegin(),
 			[](auto& lhs, auto& rhs)
 			{
 				static_assert(sizeof(lhs) == 2*sizeof(byte));
-				if constexpr (__BYTE_ORDER == __LITTLE_ENDIAN)
+				if constexpr (__little_endian)
 				{
 					lhs = rhs;
 				}
@@ -111,7 +112,7 @@ struct convert_color_space_impl
 		{
 			for(auto i{0}; i < row_info->rowbytes; ++i)
 			{
-				spdlog::info("{}: rows after = {:x}\n", i, row[i]);
+				spdlog::info("{:02}: rows after = 0x {:02x}", i, row[i]);
 			}
 		}
 #ifdef DEBUG_EXPAND_8_16

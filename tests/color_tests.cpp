@@ -10,8 +10,12 @@
 
 \**********************************************************************************************************************************************/
 #include "../include/stdafx.h"
+
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
+#include <gsl/gsl>
 #include <windows.h>
+
 #include "../include/png.hpp"
 #include "../include/convert_color_space.hpp"
 
@@ -28,27 +32,66 @@
 namespace png::testing
 {
 
-TEST_CASE("Some Tests", "[PNGPP]")
+TEST_CASE("color struct tests", "[PNGPP]")
 {
 	color testObjNone;
 	color testObjRGB{1, 2, 3};
 	color testObjCtor{testObjRGB};
 	color testObjMtor{std::move(testObjCtor)};
-	std::cout << ::fmt::format("red: {:b}", testObjNone.red) << ::fmt::format(" green: {:b}", testObjNone.green) << ::fmt::format(" blue: {:b}", testObjNone.blue) << "\n";
-	std::cout << ::fmt::format("red: {:b}", testObjRGB.red) << ::fmt::format(" green: {:b}", testObjRGB.green) << ::fmt::format(" blue: {:b}", testObjRGB.blue) << "\n";
-	std::cout << ::fmt::format("red: {:b}", testObjCtor.red) << ::fmt::format(" green: {:b}", testObjCtor.green) << ::fmt::format(" blue: {:b}", testObjCtor.blue) << "\n";
-	std::cout << ::fmt::format("red: {:b}", testObjMtor.red) << ::fmt::format(" green: {:b}", testObjMtor.green) << ::fmt::format(" blue: {:b}", testObjMtor.blue) << "\n";
+	::std::cout	<< "\n";
+	::spdlog::info("color object output:");
+	::spdlog::info("========================================");
+	::std::cout	<< "\t\t\t\t| "
+				<< ::fmt::format("red: 0b {:02b} | ", testObjNone.red)
+				<< ::fmt::format("green: 0b {:02b} | ", testObjNone.green)
+				<< ::fmt::format("blue: 0b {:02b}", testObjNone.blue)
+				<< "\n";
+	::std::cout	<< "\t\t\t\t| "
+				<< ::fmt::format("red: 0b {:02b} | ", testObjRGB.red)
+				<< ::fmt::format("green: 0b {:02b} | ", testObjRGB.green)
+				<< ::fmt::format("blue: 0b {:02b}", testObjRGB.blue)
+				<< "\n";
+	::std::cout	<< "\t\t\t\t| "
+				<< ::fmt::format("red: 0b {:02b} | ", testObjCtor.red)
+				<< ::fmt::format("green: 0b {:02b} | ", testObjCtor.green)
+				<< ::fmt::format("blue: 0b {:02b}", testObjCtor.blue)
+				<< "\n";
+	::std::cout	<< "\t\t\t\t| "
+				<< ::fmt::format("red: 0b {:02b} | ", testObjMtor.red)
+				<< ::fmt::format("green: 0b {:02b} | ", testObjMtor.green)
+				<< ::fmt::format("blue: 0b {:02b}", testObjMtor.blue)
+				<< "\n";
+	::spdlog::info("========================================\n");
 	// never use std::endl, it flushes stream every call
 
+	//::spdlog::info("red: 0b {:02b} ", testObjNone.red);
+	//::spdlog::info("green: 0b {:02b} ", testObjNone.green);
+	//::spdlog::info("blue: 0b {:02b}", testObjNone.blue);
+
+	//::spdlog::info("red: 0b {:02b} ", testObjRGB.red);
+	//::spdlog::info("green: 0b {:02b} ", testObjRGB.green);
+	//::spdlog::info("blue: 0b {:02b}", testObjRGB.blue);
+
+	//::spdlog::info("red: 0b {:02b} ", testObjCtor.red);
+	//::spdlog::info("green: 0b {:02b} ", testObjCtor.green);
+	//::spdlog::info("blue: 0b {:02b}", testObjCtor.blue);
+
+	//::spdlog::info("red: 0b {:02b} ", testObjMtor.red);
+	//::spdlog::info("green: 0b {:02b} ", testObjMtor.green);
+	//::spdlog::info("blue: 0b {:02b}", testObjMtor.blue);
+}
+
+TEST_CASE("convert_color_space_impl tests", "[PNGPP]")
+{
 	png_struct s1;
 	png_row_info ri1;
 	byte* bptr = new byte[16];
 
-	for (auto i = 0; i < 9; ++i)
+	for (auto i = 0; i < 8; ++i)
 	{
-		bptr[i] = i + 128;
+		bptr[i] = i + 147;
 	}
-	for (auto i = 9; i < 16; ++i)
+	for (auto i = 8; i < 16; ++i)
 	{
 		bptr[i] = 0;
 	}
