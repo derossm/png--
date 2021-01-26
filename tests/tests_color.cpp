@@ -9,25 +9,12 @@
 	DESCRIPTION:
 
 \**********************************************************************************************************************************************/
-#include "../include/stdafx.h"
-
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <gsl/gsl>
-#include <windows.h>
+//#include "../include/stdafx.h"
 
 #include "../include/png.hpp"
-#include "../include/convert_color_space.hpp"
+//#include "../include/convert_color_space.hpp"
 
-#define CATCH_CONFIG_MAIN
-#pragma warning(push, 0)
-#include "catch.hpp"
-#pragma warning(pop)
-
-//int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
-//{
-//	return Catch::Session().run();
-//}
+#include "tests.h"
 
 namespace png::testing
 {
@@ -85,11 +72,11 @@ TEST_CASE("convert_color_space_impl tests", "[PNGPP]")
 {
 	png_struct s1;
 	png_row_info ri1;
-	byte* bptr = new byte[16];
+	::std::array<byte, 16> bptr;
 
 	for (size_t i{0}; i < 8; ++i)
 	{
-		bptr[i] = i + 147;
+		bptr[i] = static_cast<byte>(i) + 147;
 	}
 	for (size_t i{8}; i < 16; ++i)
 	{
@@ -97,8 +84,7 @@ TEST_CASE("convert_color_space_impl tests", "[PNGPP]")
 	}
 
 	ri1.rowbytes = 16;
-	::png::detail::convert_color_space_impl<rgb_pixel>::expand_8_to_16(&s1, &ri1, bptr);
-	delete [] bptr;
+	::png::detail::convert_color_space_impl<rgb_pixel>::expand_8_to_16(&s1, &ri1, bptr.data());
 }
 
 }

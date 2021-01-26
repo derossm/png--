@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include <cassert>
+//#include <cassert>
 #include "io_base.hpp"
 
 namespace png

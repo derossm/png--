@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include <cassert>
+//#include <cassert>
 #include "image_info.hpp"
 #include "pixel_traits.hpp"
 

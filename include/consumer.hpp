@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include <cassert>
+//#include <cassert>
 #include <stdexcept>
 #include <iostream>
 #include <istream>
@@ -99,8 +99,29 @@ namespace png
 template<typename pixel, typename pixcon, typename info_holder = def_image_info_holder, bool interlacing_supported = false>
 class consumer : public streaming_base<pixel, info_holder>
 {
+private:
+	consumer() = delete;
+
+	consumer(const consumer&) = delete;
+	consumer(consumer&&) = delete;
+
+	consumer& operator=(const consumer&) = delete;
+	consumer& operator=(consumer&&) = delete;
+
+protected:
+	using base = streaming_base<pixel, info_holder>;
+
+	/**
+	 * \brief Constructs a consumer object using passed image_info object to store image information.
+	 */
+	explicit inline constexpr consumer(image_info& info) noexcept : base(info) {}
+
 public:
 	using traits = pixel_traits<pixel>;
+
+	inline constexpr auto operator<=>(const consumer&) const noexcept = default;
+
+	inline ~consumer() noexcept = default;
 
 	/**
 	 * \brief The default io transformation: does nothing.
@@ -175,26 +196,7 @@ public:
 		rd.read_end_info();
 	}
 
-	inline constexpr auto operator<=>(const consumer&) const noexcept = default;
-
-protected:
-	using base = streaming_base<pixel, info_holder>;
-
-	/**
-	 * \brief Constructs a consumer object using passed image_info object to store image information.
-	 */
-	explicit inline constexpr consumer(image_info& info) noexcept : base(info) {}
-
 private:
-	consumer() = delete;
-	~consumer() = default;
-
-	inline constexpr consumer(const consumer&) noexcept = delete;
-	inline constexpr consumer(consumer&&) noexcept = delete;
-
-	inline constexpr consumer& operator=(const consumer&) noexcept = delete;
-	inline constexpr consumer& operator=(consumer&&) noexcept = delete;
-
 	template<typename istream>
 	inline constexpr void skip_interlaced_rows(reader<istream>& rd, size_t pass_count) noexcept
 	{

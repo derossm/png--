@@ -47,10 +47,7 @@
 #include "reader.hpp"
 #include "writer.hpp"
 
-namespace png
-{
-
-namespace detail
+namespace png::detail
 {
 
 /**
@@ -77,7 +74,13 @@ struct convert_color_space_impl
 	}
 
 //protected:
-	static inline constexpr void expand_8_to_16(png_struct*, png_row_info* row_info, byte* row) noexcept
+
+	// requirement: row_info->rowbytes = 2x the current row length = n, contents of row are n elements
+	// expand row by interlacing the original row with a zero'd row of the same length into a 2*length row
+	// insert gaps by moving the (n)th item to index 2*n, then zero index 2*(n) - 1, then move (n-1)th item to index 2*(n-1)...
+	// Note: this seems like a zip algorithm, and there is room to optimize now that it's algorithmized
+	// result: expanded row starts with `expanded index[0]` = 0, `expanded index[1]` = `original index[0]`
+	static inline constexpr void expand_8_to_16(png_struct* /*unused?*/, png_row_info* row_info, byte* row) noexcept
 	{
 #ifdef DEBUG_EXPAND_8_16
 		printf("row: width=%d, bytes=%d, channels=%d\n", row_info->width, row_info->rowbytes, row_info->channels);
@@ -91,7 +94,7 @@ struct convert_color_space_impl
 		//}
 		auto expanded{::std::span(reinterpret_cast<uint16_t*>(row), row_info->rowbytes/2)};
 		auto compact{::std::span(row, row_info->rowbytes/2)};
-		// need to do this in reverse order, otherwise we could use the ranges version and avoid the explicit temps
+		// need to do this in reverse order, otherwise we could use the ranges version and avoid naming these temp objects
 		::std::transform(expanded.rbegin(), expanded.rend(), compact.rbegin(), expanded.rbegin(),
 			[](auto& lhs, auto& rhs)
 			{
@@ -102,12 +105,13 @@ struct convert_color_space_impl
 				}
 				else
 				{
-					// I think this will work for BIG ENDIAN
+					// I think this will work for BIG ENDIAN, but I can't test it atm
 					lhs = rhs;
 					lhs >>= sizeof(byte);
 				}
 				return lhs;
 			});
+
 		if constexpr(enable_logging)
 		{
 			for(size_t i{0}; i < row_info->rowbytes; ++i)
@@ -115,6 +119,7 @@ struct convert_color_space_impl
 				spdlog::info("{:02}: rows after = 0x {:02x}", i, row[i]);
 			}
 		}
+
 #ifdef DEBUG_EXPAND_8_16
 		printf("=> ");
 		dump_row(row, 2 * row_info->rowbytes);
@@ -138,20 +143,27 @@ struct convert_color_space_impl
 	{
 		if (io.get_bit_depth() == 16 && traits::get_bit_depth() == 8)
 		{
-#ifdef PNG_READ_16_TO_8_SUPPORTED
-			io.set_strip_16();
-#else
-			throw error("expected 8-bit data but found 16-bit; recompile with PNG_READ_16_TO_8_SUPPORTED");
-#endif
+			if constexpr(png_read_16_to_8_supported)
+			{
+				io.set_strip_16();
+			}
+			else
+			{
+				throw error("expected 8-bit data but found 16-bit; recompile with PNG_READ_16_TO_8_SUPPORTED");
+			}
 		}
+
 		if (io.get_bit_depth() != 16 && traits::get_bit_depth() == 16)
 		{
-#ifdef PNG_READ_USER_TRANSFORM_SUPPORTED
-			io.set_read_user_transform(expand_8_to_16);
-			io.set_user_transform_info(NULL, 16, traits::get_channels());
-#else
-			throw error("expected 16-bit data but found 8-bit; recompile with PNG_READ_USER_TRANSFORM_SUPPORTED");
-#endif
+			if constexpr(png_read_user_transform_supported)
+			{
+				io.set_read_user_transform(expand_8_to_16);
+				io.set_user_transform_info(NULL, 16, traits::get_channels());
+			}
+			else
+			{
+				throw error("expected 16-bit data but found 8-bit; recompile with PNG_READ_USER_TRANSFORM_SUPPORTED");
+			}
 		}
 	}
 
@@ -163,54 +175,65 @@ struct convert_color_space_impl
 		bool dst_alpha{traits::get_color_type() & color_mask_alpha};
 		if ((src_alpha || src_tRNS) && !dst_alpha)
 		{
-#ifdef PNG_READ_STRIP_ALPHA_SUPPORTED
-			io.set_strip_alpha();
-#else
-			throw error("alpha channel unexpected; recompile with PNG_READ_STRIP_ALPHA_SUPPORTED");
-#endif
+			if constexpr(png_read_strip_alpha_supported)
+			{
+				io.set_strip_alpha();
+			}
+			else
+			{
+				throw error("alpha channel unexpected; recompile with PNG_READ_STRIP_ALPHA_SUPPORTED");
+			}
 		}
 		if (!src_alpha && dst_alpha)
 		{
-#if defined(PNG_tRNS_SUPPORTED) && defined(PNG_READ_EXPAND_SUPPORTED)
-			if (src_tRNS)
+			if constexpr (png_trns_supported && png_read_expand_supported)
 			{
-				io.set_tRNS_to_alpha();
-				return;
+				if (src_tRNS)
+				{
+					io.set_tRNS_to_alpha();
+					return;
+				}
 			}
-#endif
-#if defined(PNG_READ_FILLER_SUPPORTED) && !defined(PNG_1_0_X)
-			io.set_add_alpha(filler, filler_after);
-#else
-			throw error("expected alpha channel but none found; recompile with PNG_READ_FILLER_SUPPORTED and be sure to use libpng > 1.0.x");
-#endif
-		}
+
+			if constexpr(png_read_filler_supported && !png_1_0_x)
+			{
+				io.set_add_alpha(filler, filler_after);
+			}
+			else
+			{
+				throw error("expected alpha channel but none found; recompile with PNG_READ_FILLER_SUPPORTED and be sure to use libpng > 1.0.x");}
+			}
 	}
 
 	template<typename reader>
 	static inline constexpr void handle_palette(reader& io) noexcept
 	{
-		bool src_palette = io.get_color_type() == color_type_palette;
-		bool dst_palette = traits::get_color_type() == color_type_palette;
+		bool src_palette{io.get_color_type() == color_type_palette};
+		bool dst_palette{traits::get_color_type() == color_type_palette};
 		if (src_palette && !dst_palette)
 		{
-#ifdef PNG_READ_EXPAND_SUPPORTED
-			io.set_palette_to_rgb();
-			io.get_info().drop_palette();
-#else
-			throw error("indexed colors unexpected; recompile with PNG_READ_EXPAND_SUPPORTED");
-#endif
+			if constexpr (png_read_expand_supported)
+			{
+				io.set_palette_to_rgb();
+				io.get_info().drop_palette();
+			}
+			else
+			{
+				throw error("indexed colors unexpected; recompile with PNG_READ_EXPAND_SUPPORTED");
+			}
 		}
 		else if (!src_palette && dst_palette)
 		{
-			throw error("conversion to indexed colors is unsupported (yet)");
+			throw error("conversion to indexed colors is unsupported");
 		}
 		else if (src_palette && dst_palette && io.get_bit_depth() != traits::get_bit_depth())
 		{
 			if (traits::get_bit_depth() == 8)
 			{
-#ifdef PNG_READ_PACK_SUPPORTED
-				io.set_packing();
-#endif
+				if constexpr (png_read_pack_supported)
+				{
+					io.set_packing();
+				}
 			}
 			else
 			{
@@ -226,19 +249,25 @@ struct convert_color_space_impl
 		bool dst_rgb{traits::get_color_type() & color_mask_rgb};
 		if (src_rgb && !dst_rgb)
 		{
-#ifdef PNG_READ_RGB_TO_GRAY_SUPPORTED
-			io.set_rgb_to_gray(/*rgb_to_gray_error*/);
-#else
-			throw error("grayscale data expected; recompile with PNG_READ_RGB_TO_GRAY_SUPPORTED");
-#endif
+			if constexpr (png_read_rgb_to_gray_supported)
+			{
+				io.set_rgb_to_gray(/*rgb_to_gray_error*/);
+			}
+			else
+			{
+				throw error("grayscale data expected; recompile with PNG_READ_RGB_TO_GRAY_SUPPORTED");
+			}
 		}
 		if (!src_rgb && dst_rgb)
 		{
-#ifdef PNG_READ_GRAY_TO_RGB_SUPPORTED
-			io.set_gray_to_rgb();
-#else
-			throw error("expected RGB data; recompile with PNG_READ_GRAY_TO_RGB_SUPPORTED");
-#endif
+			if constexpr (png_read_gray_to_rgb_supported)
+			{
+				io.set_gray_to_rgb();
+			}
+			else
+			{
+				throw error("expected RGB data; recompile with PNG_READ_GRAY_TO_RGB_SUPPORTED");
+			}
 		}
 	}
 
@@ -249,17 +278,20 @@ struct convert_color_space_impl
 		{
 			if (io.get_bit_depth() < 8 && traits::get_bit_depth() >= 8)
 			{
-#ifdef PNG_READ_EXPAND_SUPPORTED
-				io.set_gray_1_2_4_to_8();
-#else
-				throw error("convert_color_space: expected 8-bit data; recompile with PNG_READ_EXPAND_SUPPORTED");
-#endif
+				if constexpr (png_read_expand_supported)
+				{
+					io.set_gray_1_2_4_to_8();
+				}
+				else
+				{
+					throw error("convert_color_space: expected 8-bit data; recompile with PNG_READ_EXPAND_SUPPORTED");
+				}
 			}
 		}
 	}
 };
 
-} // namespace detal
+} // namespace png::detail
 
 /**
  * \brief IO transformation class template. Converts %image %color
@@ -276,72 +308,6 @@ struct convert_color_space_impl
  *
  * \see image, image::read
  */
-template<typename pixel> struct convert_color_space : detail::convert_color_space_impl<pixel> {};
-
-/**
- * \brief Converts %image %color space. A specialization for rgb_pixel type.
- /
-template<>
-struct convert_color_space<rgb_pixel> : detail::convert_color_space_impl<rgb_pixel>
-{};
-
-/**
- * \brief Converts %image %color space. A specialization for rgb_pixel_16 type.
- /
-template<>
-struct convert_color_space<rgb_pixel_16> : detail::convert_color_space_impl<rgb_pixel_16>
-{};
-
-/**
- * \brief Converts %image %color space. A specialization for rgba_pixel type.
- /
-template<>
-struct convert_color_space<rgba_pixel> : detail::convert_color_space_impl<rgba_pixel>
-{};
-
-/**
- * \brief Converts %image %color space. A specialization for rgba_pixel_16 type.
- /
-template<>
-struct convert_color_space<rgba_pixel_16> : detail::convert_color_space_impl<rgba_pixel_16>
-{};
-
-/**
- * \brief Converts %image %color space. A specialization for gray_pixel type.
- /
-template<>
-struct convert_color_space<gray_pixel> : detail::convert_color_space_impl<gray_pixel>
-{};
-
-/**
- * \brief Converts %image %color space. A specialization for gray_pixel_16 type.
- /
-template<>
-struct convert_color_space<gray_pixel_16> : detail::convert_color_space_impl<gray_pixel_16>
-{};
-
-/**
- * \brief Converts %image %color space. A specialization for ga_pixel type.
- /
-template<>
-struct convert_color_space<ga_pixel> : detail::convert_color_space_impl<ga_pixel>
-{};
-
-/**
- * \brief Converts %image %color space. A specialization for ga_pixel_16 type.
- /
-template<>
-struct convert_color_space<ga_pixel_16> : detail::convert_color_space_impl<ga_pixel_16>
-{};
-
-/**
- * \brief Converts %image %color space. A specialization for index_pixel type.
- /
-template<>
-struct convert_color_space<index_pixel> : detail::convert_color_space_impl<index_pixel>
-{};
-*/
-
-} // namespace png
+template<typename pixel> struct convert_color_space : png::detail::convert_color_space_impl<pixel> {};
 
 #endif // PNGPP_CONVERT_COLOR_SPACE_HPP_INCLUDED

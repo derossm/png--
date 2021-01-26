@@ -33,7 +33,10 @@
 
 #pragma once
 
-#include <png.h>
+extern "C"
+{
+	#include <png.h>
+}
 
 namespace png
 {

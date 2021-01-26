@@ -37,22 +37,35 @@
 #include <string>
 #include <stdexcept>
 #include <cerrno>
-#include <cstdlib>
 #include <cstring>
 
 namespace png
 {
+
+// the longest errors seem to be under 100 characters, so 512 seems safe
+inline constexpr const size_t MAX_ERROR_LEN{512};
 
 /**
  * \brief Exception class to represent runtime errors related to png++ operation.
  */
 class error : public std::runtime_error
 {
+private:
+	error() = delete;
+
+	error(const error&) = delete;
+	error(error&&) = delete;
+
+	error& operator=(const error&) = delete;
+	error& operator=(error&&) = delete;
+
 public:
 	/**
 	 * \param message error description
 	 */
 	explicit inline error(const std::string& message) noexcept : std::runtime_error(message) {}
+
+	inline ~error() noexcept = default;
 };
 
 /**
@@ -63,10 +76,21 @@ public:
 
 class std_error : public std::runtime_error
 {
+private:
+	std_error() = delete;
+
+	std_error(const std_error&) = delete;
+	std_error(std_error&&) = delete;
+
+	std_error& operator=(const std_error&) = delete;
+	std_error& operator=(std_error&&) = delete;
+
 protected:
-	static auto thread_safe_strerror(int errnum)
+	inline ::std::string thread_safe_strerror(int errnum) const noexcept
 	{
-		return ::std::strerror(errnum);
+		::std::array<char, MAX_ERROR_LEN> str;
+		strerror_s(str.data(), MAX_ERROR_LEN, errnum);
+		return ::std::string(str.data());
 	}
 
 public:
@@ -80,6 +104,7 @@ public:
 	explicit inline std_error(const std::string& message, int errnum = errno) noexcept
 		: std::runtime_error((message + ": ") + thread_safe_strerror(errnum)) {}
 
+	inline ~std_error() noexcept = default;
 };
 
 } // namespace png

@@ -35,7 +35,10 @@
 
 constexpr bool enable_logging{true};
 
-#include <png.h>
+extern "C"
+{
+	#include <png.h>
+}
 
 #include "config.hpp"
 #include "types.hpp"

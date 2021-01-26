@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include <cassert>
+//#include <cassert>
 #include <stdexcept>
 #include <iostream>
 #include <ostream>
@@ -111,29 +111,35 @@ public:
 		{
 			if (pixel_traits<pixel>::get_bit_depth() == 16)
 			{
-#ifdef PNG_WRITE_SWAP_SUPPORTED
-				wr.set_swap();
-#else
-				throw error("Cannot write 16-bit image: recompile with PNG_WRITE_SWAP_SUPPORTED.");
-#endif
+				if constexpr (png_write_swap_supported)
+				{
+						wr.set_swap();
+				}
+				else
+				{
+					throw error("Cannot write 16-bit image: recompile with PNG_WRITE_SWAP_SUPPORTED.");
+				}
 			}
 		}
 
 		size_t pass_count;
 		if (this->get_info().get_interlace_type() != interlace_none)
 		{
-#ifdef PNG_WRITE_INTERLACING_SUPPORTED
-			if (interlacing_supported)
+			if constexpr (png_write_interlacing_supported)
 			{
-				pass_count = wr.set_interlace_handling();
+				if constexpr (interlacing_supported)
+				{
+					pass_count = wr.set_interlace_handling();
+				}
+				else
+				{
+					throw std::logic_error("Cannot write interlaced image: generator does not support it.");
+				}
 			}
 			else
 			{
-				throw std::logic_error("Cannot write interlaced image: generator does not support it.");
+				throw error("Cannot write interlaced image: interlace handling disabled.");
 			}
-#else
-			throw error("Cannot write interlaced image: interlace handling disabled.");
-#endif
 		}
 		else
 		{
@@ -145,7 +151,7 @@ public:
 		{
 			pixel_gen->reset(pass);
 
-			for (uint32_t pos{0}; pos < this->get_info().get_height(); ++pos)
+			for (size_t pos{0}; pos < this->get_info().get_height(); ++pos)
 			{
 				wr.write_row(pixel_gen->get_next_row(pos));
 			}

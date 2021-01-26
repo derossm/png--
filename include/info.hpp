@@ -69,40 +69,42 @@ public:
 			m_palette.assign(colors, colors + count);
 		}
 
-#ifdef PNG_tRNS_SUPPORTED
-		if (png_get_valid(m_png.get(), m_info.get(), chunk_tRNS) == chunk_tRNS)
+		if constexpr (png_trns_supported)
 		{
-			if (m_color_type == color_type_palette)
+			if (png_get_valid(m_png.get(), m_info.get(), chunk_tRNS) == chunk_tRNS)
 			{
-				int count;
-				byte* values;
-				if (png_get_tRNS(m_png.get(), m_info.get(), &values, &count, NULL) != PNG_INFO_tRNS)
+				if (m_color_type == color_type_palette)
 				{
-					throw error("png_get_tRNS() failed");
+					int count;
+					byte* values;
+					if (png_get_tRNS(m_png.get(), m_info.get(), &values, &count, nullptr) != PNG_INFO_tRNS)
+					{
+						throw error("png_get_tRNS() failed");
+					}
+					m_tRNS.assign(values, values + count);
 				}
-				m_tRNS.assign(values, values + count);
 			}
 		}
-#endif
 
-#ifdef PNG_gAMA_SUPPORTED
-		if (png_get_valid(m_png.get(), m_info.get(), chunk_gAMA) == chunk_gAMA)
+		if constexpr (png_gama_supported && png_floating_point_supported)
 		{
-#ifdef PNG_FLOATING_POINT_SUPPORTED
-			if (png_get_gAMA(m_png.get(), m_info.get(), &m_gamma) != PNG_INFO_gAMA)
+			if (png_get_valid(m_png.get(), m_info.get(), chunk_gAMA) == chunk_gAMA)
 			{
-				throw error("png_get_gAMA() failed");
+				if (png_get_gAMA(m_png.get(), m_info.get(), &m_gamma) != PNG_INFO_gAMA)
+				{
+					throw error("png_get_gAMA() failed");
+				}
 			}
-#else
+		}
+		else
+		{
 			png_fixed_point gamma = 0;
 			if (png_get_gAMA_fixed(m_png.get(), m_info.get(), &gamma) != PNG_INFO_gAMA)
 			{
 				throw error("png_get_gAMA_fixed() failed");
 			}
 			m_gamma = gamma / 100000.0;
-#endif
 		}
-#endif
 	}
 
 	inline void write() const
@@ -119,25 +121,34 @@ public:
 			}
 			if (!m_tRNS.empty())
 			{
-#ifdef PNG_tRNS_SUPPORTED
-				png_set_tRNS(m_png.get(), m_info.get(), const_cast<byte*>(&m_tRNS[0]), static_cast<int>(m_tRNS.size()), NULL);
-#else
-				throw error("attempted to write tRNS chunk; recompile with PNG_tRNS_SUPPORTED");
-#endif
+				if constexpr (png_trns_supported)
+				{
+					png_set_tRNS(m_png.get(), m_info.get(), const_cast<byte*>(&m_tRNS[0]), static_cast<int>(m_tRNS.size()), NULL);
+				}
+				else
+				{
+					throw error("attempted to write tRNS chunk; recompile with PNG_tRNS_SUPPORTED");
+				}
 			}
 		}
 
-		if (m_gamma > 0)
+		if constexpr (png_gama_supported)
 		{
-#ifdef PNG_gAMA_SUPPORTED
-#ifdef PNG_FLOATING_POINT_SUPPORTED
-			png_set_gAMA(m_png.get(), m_info.get(), m_gamma);
-#else
-			png_set_gAMA_fixed(m_png.get(), m_info.get(), static_cast<png_fixed_point>(m_gamma * 100000));
-#endif
-#else
+			if (m_gamma > 0)
+			{
+				if constexpr (png_floating_point_supported)
+				{
+					png_set_gAMA(m_png.get(), m_info.get(), m_gamma);
+				}
+				else
+				{
+						png_set_gAMA_fixed(m_png.get(), m_info.get(), static_cast<png_fixed_point>(m_gamma * 100000));
+				}
+			}
+		}
+		else
+		{
 			throw error("attempted to write gAMA chunk; recompile with PNG_gAMA_SUPPORTED");
-#endif
 		}
 
 		png_write_info(m_png.get(), m_info.get());

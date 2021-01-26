@@ -45,8 +45,18 @@ namespace png
  */
 class end_info : public info_base
 {
+	end_info() = delete;
+
+	end_info(const end_info&) = delete;
+	end_info(end_info&&) = delete;
+
+	end_info& operator=(const end_info&) = delete;
+	end_info& operator=(end_info&&) = delete;
+
 public:
 	inline end_info(io_base& io, png_struct* png) noexcept : info_base(io, png) {}
+
+	inline ~end_info() noexcept = default;
 
 	inline constexpr void destroy() noexcept
 	{

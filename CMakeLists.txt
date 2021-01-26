@@ -52,17 +52,17 @@ set(WIN64_COMPILE_OPTIONS
 #endif()
 
 # libm or fdlibm (Freely Distributable libm) : C math library IEEE 754 floating-point arithmetic
-find_package(m REQUIRED)
+#find_package(m REQUIRED)
 if(m_FOUND)
 	set(HAVE_LIBM TRUE)
 endif()
 
 # zlib : compression library
-find_package(ZLIB REQUIRED)
+#find_package(ZLIB REQUIRED)
 if(ZLIB_FOUND)
 	set(HAVE_ZLIB TRUE)
 	# zstr :
-	find_package(zstr REQUIRED)
+	#find_package(zstr REQUIRED)
 	if (ZSTR_FOUND)
 		set(HAVE_ZSTR TRUE)
 	endif()
@@ -79,13 +79,13 @@ if(WIL_FOUND)
 	set(HAVE_WIL TRUE)
 endif()
 
-find_package(rapidjson CONFIG REQUIRED)
+#find_package(rapidjson CONFIG REQUIRED)
 if(rapidjson_FOUND)
 	set(HAVE_RAPIDJSON TRUE)
 endif()
 
-set(ms-gsl_DIR "${VCPKG_BASE_DIR}/packages/ms-gsl_x64-windows/share/ms-gsl")
-find_package(ms-gsl CONFIG REQUIRED)
+#set(ms-gsl_DIR "${VCPKG_BASE_DIR}/packages/ms-gsl_x64-windows/share/ms-gsl")
+#find_package(ms-gsl CONFIG REQUIRED)
 if(ms-gsl_FOUND)
 	set(HAVE_MS_GSL TRUE)
 endif()

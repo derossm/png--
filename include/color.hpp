@@ -53,7 +53,7 @@ struct color : public png_color
 
 		if constexpr(enable_logging)
 		{
-			spdlog::info("constructor");
+			spdlog::info("color:explicit RGB constructor");
 		}
 	}
 
@@ -93,7 +93,7 @@ struct color : public png_color
 
 		if constexpr(enable_logging)
 		{
-			spdlog::info("png_color:cass");
+			spdlog::info("png_color:copyassign");
 		}
 
 		return *this;
@@ -107,7 +107,7 @@ struct color : public png_color
 
 		if constexpr(enable_logging)
 		{
-			spdlog::info("png_color:mass");
+			spdlog::info("png_color:moveassign");
 		}
 
 		return *this;
@@ -145,7 +145,7 @@ struct color : public png_color
 
 		if constexpr(enable_logging)
 		{
-			spdlog::info("color:cass");
+			spdlog::info("color:copyassign");
 		}
 
 		return *this;
@@ -159,7 +159,7 @@ struct color : public png_color
 
 		if constexpr(enable_logging)
 		{
-			spdlog::info("color:mass");
+			spdlog::info("color:moveassign");
 		}
 
 		return *this;

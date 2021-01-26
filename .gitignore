@@ -3,6 +3,7 @@
 build/**
 out/**
 bin/**
+lpng1637/**
 *.vcxproj
 *.sln
 *.filters
